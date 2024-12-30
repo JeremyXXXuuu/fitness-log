@@ -6,7 +6,8 @@ export default function HomeLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "Home",
+          headerTitle: "Home",
+          headerShown: false,
         }}
       />
     </Stack>

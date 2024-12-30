@@ -13,6 +13,8 @@ import Account from "@/components/auth/Account";
 
 import { Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import WorkoutLog from "@/components/core/fitness/WorkoutLog";
+import { Link } from "expo-router";
 
 // const expo = SQLite.openDatabaseSync("db.db", { enableChangeListener: true });
 
@@ -94,10 +96,11 @@ export default function App() {
           <Text>{item.email}</Text>
           <Text>{item.calorires_goal}</Text>
           <Button>
-            <Text>Update</Text>
+            <Link href="/modal">Open modal</Link>
           </Button>
         </View>
       ))}
+      <WorkoutLog />
       {session && session.user ? (
         <Account
           key={session.user.id}

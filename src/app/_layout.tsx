@@ -64,12 +64,13 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
       <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-      <Tabs>
+      <Stack>
         <Stack.Screen
           name="home"
           options={{
-            title: "Food Logger",
-            headerLargeTitle: true,
+            title: "Home",
+            headerShown: false,
+            headerLargeTitle: false,
             headerShadowVisible: false,
             headerStyle: {
               backgroundColor: "#fff",
@@ -80,16 +81,27 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
-          name="home/add"
+          name="index"
           options={{
-            title: "Add Food Entry",
+            title: "Settings",
+            headerShown: false,
+            headerLargeTitle: false,
             headerShadowVisible: false,
             headerStyle: {
               backgroundColor: "#fff",
             },
+            headerLargeTitleStyle: {
+              fontSize: 32,
+            },
           }}
         />
-      </Tabs>
+        <Stack.Screen
+          name="modal"
+          options={{
+            presentation: "modal",
+          }}
+        />
+      </Stack>
     </ThemeProvider>
   );
 }
