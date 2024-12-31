@@ -6,18 +6,18 @@ import {
   index,
   real,
 } from "drizzle-orm/sqlite-core";
-import { MacrosGoal, ActivityLevel } from "./types";
-
-export const devicesTable = sqliteTable("devices", {
-  id: integer().primaryKey({ autoIncrement: true }),
-  device_id: text().notNull().unique(), // Unique device identifier
-  user_id: integer().references((): any => usersTable.id, {
-    onDelete: "cascade",
-  }), // Associated user
-  device_type: text().notNull(), // Mobile, tablet, desktop, etc.
-  last_sync: text().default(sql`(CURRENT_TIMESTAMP)`),
-  sync_token: text(), // Incremental sync token
-});
+import {
+  MacrosGoal,
+  ActivityLevel,
+  force,
+  level,
+  mechanic,
+  equipment,
+  category,
+  primaryMuscles,
+  secondaryMuscles,
+  workoutLogExercise,
+} from "./types";
 
 export const usersTable = sqliteTable(
   "users_table",
@@ -45,7 +45,6 @@ export const usersTable = sqliteTable(
     deleted_at: text(), // Soft delete
     is_synced: integer().default(0), // 0: not synced, 1: synced
     sync_version: integer().default(0), // Increment on each update
-    device_id: integer().references((): any => devicesTable.id), // Device that created/modified this record
   },
   t => [
     index("email_idx").on(t.email),
@@ -55,35 +54,65 @@ export const usersTable = sqliteTable(
   ],
 );
 
-export const syncLogTable = sqliteTable("sync_log", {
-  id: integer().primaryKey({ autoIncrement: true }),
-  table_name: text().notNull(),
-  record_id: integer().notNull(),
-  operation: text().notNull(), // INSERT, UPDATE, DELETE
-  sync_status: text().notNull(), // PENDING, SUCCESS, FAILED
-  created_at: text().default(sql`(CURRENT_TIMESTAMP)`),
-  device_id: text().references(() => devicesTable.device_id),
-  error_message: text(),
-});
+export const exercisesTable = sqliteTable(
+  "exercises",
+  {
+    uuid: text("uuid")
+      .primaryKey()
+      .notNull()
+      .default(sql`(lower(hex(randomblob(16))))`),
+    id: text("id"),
+    name: text("name").notNull(),
+    force: text("force", {
+      enum: Object.values(force) as [string, ...string[]],
+    }),
+    level: text("level", {
+      enum: Object.values(level) as [string, ...string[]],
+    }),
+    mechanic: text("mechanic", {
+      enum: Object.values(mechanic) as [string, ...string[]],
+    }),
+    equipment: text("equipment", {
+      enum: Object.values(equipment) as [string, ...string[]],
+    }),
+    primaryMuscles: text("primary_muscles", {
+      enum: Object.values(primaryMuscles) as [string, ...string[]],
+    }),
+    secondaryMuscles: text("secondary_muscles", {
+      enum: Object.values(secondaryMuscles) as [string, ...string[]],
+    }),
+    instructions: text("instructions"), // Store as JSON string
+    category: text("category", {
+      enum: Object.values(category) as [string, ...string[]],
+    }),
+    images: text("images"), // Store as JSON string
+    updatedAt: text("updated_at").notNull(), // Timestamp for sync
+    isUserCreated: integer("is_user_created").default(0),
+    isSynced: integer("is_synced").default(0),
+  },
+  t => [
+    index("id_idx").on(t.id),
+    index("name_idx").on(t.name),
+    index("level_idx").on(t.level),
+    index("category_idx").on(t.category),
+    index("is_synced_idx").on(t.isSynced),
+  ],
+);
 
-// export const foodItemsTable = sqliteTable("food_items", {
-//   id: integer().primaryKey({ autoIncrement: true }),
-//   name: text().notNull(),
-//   calories: real().notNull(),
-//   protein: real().notNull(),
-//   carbs: real().notNull(),
-//   fat: real().notNull(),
-//   createdAt: text().default(sql`(CURRENT_TIMESTAMP)`),
-// });
-
-// export const foodLogsTable = sqliteTable("food_logs", {
-//   id: integer().primaryKey({ autoIncrement: true }),
-//   userId: integer()
-//     .notNull()
-//     .references(() => usersTable.id),
-//   foodItemId: integer()
-//     .notNull()
-//     .references(() => foodItemsTable.id),
-//   servingSize: real().notNull(),
-//   loggedAt: text().default(sql`(CURRENT_TIMESTAMP)`),
-// });
+// workout log table, to store user's workout logs, this will be used to sync with the server
+// and also to show the user's workout history
+export const workoutLogTable = sqliteTable(
+  "workout_log",
+  {
+    id: integer().primaryKey({ autoIncrement: true }),
+    user_id: integer().notNull(),
+    exercises: text({ mode: "json" }).$type<workoutLogExercise[]>().notNull(),
+    notes: text(),
+    created_at: text().default(sql`(CURRENT_TIMESTAMP)`),
+    updated_at: text().default(sql`(CURRENT_TIMESTAMP)`),
+    deleted_at: text(),
+    duration: integer().default(0),
+    is_synced: integer().default(0),
+  },
+  t => [index("user_id_idx").on(t.user_id)],
+);
