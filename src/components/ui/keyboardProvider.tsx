@@ -5,10 +5,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Animated } from "react-native";
+import { Animated, SafeAreaView } from "react-native";
 import CustomKeyboard from "./keyboard";
 import { Button } from "./button";
 import { Text } from "./text";
+import RPEKeyboard from "./rpe-keyboard";
 
 interface KeyboardContextProps {
   activeInputId: string | null;
@@ -30,8 +31,11 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [activeInputId, setActiveInput] = useState<string | null>(null);
   const [currentValue, setCurrentValue] = useState("");
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const inputOrder: string[] = [];
-  const inputValues = useRef<Record<string, string>>({}).current;
+  const [keyboardType, setKeyboardType] = useState<"numbers" | "rpe">(
+    "numbers",
+  );
 
   const registerInput = (id: string) => {
     if (!inputOrder.includes(id)) inputOrder.push(id);
@@ -44,7 +48,11 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const deleteInput = (id: string) => {
     unregisterInput(id);
-    delete inputValues[id];
+    setInputValues(prev => {
+      const newValues = { ...prev };
+      delete newValues[id];
+      return newValues;
+    });
   };
 
   const focusNext = (currentId: string) => {
@@ -56,13 +64,17 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleKeyPress = (key: string) => {
     if (!activeInputId) return;
 
-    if (key === "backspace") {
+    if (key === "rpe") {
+      setKeyboardType("rpe");
+    } else if (key === "numbers") {
+      setKeyboardType("numbers");
+    } else if (key === "backspace") {
       const newValue = currentValue.slice(0, -1);
       setCurrentValue(newValue);
-      inputValues[activeInputId] = newValue;
+      setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
     } else if (key === "clear") {
       setCurrentValue("");
-      inputValues[activeInputId] = "";
+      setInputValues(prev => ({ ...prev, [activeInputId]: "" }));
     } else if (key === "next") {
       focusNext(activeInputId);
     } else if (key === "hide") {
@@ -70,7 +82,7 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
     } else {
       const newValue = currentValue + key;
       setCurrentValue(newValue);
-      inputValues[activeInputId] = newValue;
+      setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
     }
   };
 
@@ -83,7 +95,7 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
     if (activeInputId) {
       setCurrentValue(inputValues[activeInputId] || "");
     }
-  }, [activeInputId, inputValues]);
+  }, [activeInputId]); // Remove inputValues from dependencies
 
   const isKeyboardVisible = activeInputId !== null;
   const slideAnim = useRef(new Animated.Value(300)).current;
@@ -120,17 +132,23 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
             bottom: 0, // Positioned at the bottom of the screen
             left: 0, // Align with the left edge
             right: 0, // Align with the right edge
-            backgroundColor: "#000",
+            // backgroundColor: "#000",
             transform: [{ translateY: slideAnim }], // Animated transform
           }}
         >
-          <Button
-            className="rounded-lg"
-            onPress={handleDone}
-          >
-            <Text className="text-white font-medium">Done</Text>
-          </Button>
-          <CustomKeyboard onKeyPress={handleKeyPress} />
+          <SafeAreaView>
+            <Button
+              className="rounded-lg"
+              onPress={handleDone}
+            >
+              <Text className="text-white font-medium">Done</Text>
+            </Button>
+            {keyboardType === "numbers" ? (
+              <CustomKeyboard onKeyPress={handleKeyPress} />
+            ) : (
+              <RPEKeyboard onKeyPress={handleKeyPress} />
+            )}
+          </SafeAreaView>
         </Animated.View>
       )}
     </KeyboardContext.Provider>

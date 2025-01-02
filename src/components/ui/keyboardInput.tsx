@@ -38,11 +38,14 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   }, [id, registerInput, unregisterInput]);
 
   useEffect(() => {
-    if (!isKeyboardVisible && currentValue) {
-      onChange?.(currentValue);
-      onSubmit?.(inputValues[id]);
+    if (!isKeyboardVisible && inputValues[id]) {
+      const value = inputValues[id];
+      requestAnimationFrame(() => {
+        onChange?.(value);
+        onSubmit?.(value);
+      });
     }
-  }, [isKeyboardVisible, currentValue, onChange, onSubmit, inputValues, id]);
+  }, [isKeyboardVisible, id]);
 
   useEffect(() => {
     if (isKeyboardVisible && activeInputId === id) {
