@@ -1,0 +1,137 @@
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { Animated } from "react-native";
+import CustomKeyboard from "./keyboard";
+import { Button } from "./button";
+import { Text } from "./text";
+
+interface KeyboardContextProps {
+  activeInputId: string | null;
+  registerInput: (id: string) => void;
+  unregisterInput: (id: string) => void;
+  setActiveInput: (id: string | null) => void;
+  focusNext: (currentId: string) => void;
+  currentValue: string;
+  inputValues: Record<string, string>;
+  handleKeyPress: (key: string) => void;
+  isKeyboardVisible: boolean;
+}
+
+const KeyboardContext = createContext<KeyboardContextProps | null>(null);
+
+export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [activeInputId, setActiveInput] = useState<string | null>(null);
+  const [currentValue, setCurrentValue] = useState("");
+  const inputOrder: string[] = [];
+  const inputValues = useRef<Record<string, string>>({}).current;
+
+  const registerInput = (id: string) => {
+    if (!inputOrder.includes(id)) inputOrder.push(id);
+  };
+
+  const unregisterInput = (id: string) => {
+    const index = inputOrder.indexOf(id);
+    if (index > -1) inputOrder.splice(index, 1);
+  };
+
+  const focusNext = (currentId: string) => {
+    const currentIndex = inputOrder.indexOf(currentId);
+    const nextIndex = (currentIndex + 1) % inputOrder.length; // Loop back to the first input
+    setActiveInput(inputOrder[nextIndex]);
+  };
+
+  const handleKeyPress = (key: string) => {
+    if (!activeInputId) return;
+
+    if (key === "backspace") {
+      const newValue = currentValue.slice(0, -1);
+      setCurrentValue(newValue);
+      inputValues[activeInputId] = newValue;
+    } else if (key === "clear") {
+      setCurrentValue("");
+      inputValues[activeInputId] = "";
+    } else if (key === "next") {
+      focusNext(activeInputId);
+    } else if (key === "hide") {
+      setActiveInput(null);
+    } else {
+      const newValue = currentValue + key;
+      setCurrentValue(newValue);
+      inputValues[activeInputId] = newValue;
+    }
+  };
+
+  const handleDone = () => {
+    setActiveInput(null);
+  };
+
+  useEffect(() => {
+    if (activeInputId) {
+      setCurrentValue(inputValues[activeInputId] || "");
+    }
+  }, [activeInputId, inputValues]);
+
+  const isKeyboardVisible = activeInputId !== null;
+  const slideAnim = useRef(new Animated.Value(300)).current;
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: isKeyboardVisible ? 0 : 300,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isKeyboardVisible, slideAnim]);
+
+  return (
+    <KeyboardContext.Provider
+      value={{
+        activeInputId,
+        registerInput,
+        unregisterInput,
+        setActiveInput,
+        focusNext,
+        currentValue,
+        inputValues,
+        handleKeyPress,
+        isKeyboardVisible,
+      }}
+    >
+      {children}
+      {isKeyboardVisible && (
+        <Animated.View
+          className="w-full bg-gray-900 rounded-t-3xl"
+          style={{
+            position: "absolute",
+            bottom: 0, // Positioned at the bottom of the screen
+            left: 0, // Align with the left edge
+            right: 0, // Align with the right edge
+            backgroundColor: "#000",
+            transform: [{ translateY: slideAnim }], // Animated transform
+          }}
+        >
+          <Button
+            className="rounded-lg"
+            onPress={handleDone}
+          >
+            <Text className="text-white font-medium">Done</Text>
+          </Button>
+          <CustomKeyboard onKeyPress={handleKeyPress} />
+        </Animated.View>
+      )}
+    </KeyboardContext.Provider>
+  );
+};
+
+export const useKeyboard = () => {
+  const context = useContext(KeyboardContext);
+  if (!context)
+    throw new Error("useKeyboard must be used within a KeyboardProvider");
+  return context;
+};
