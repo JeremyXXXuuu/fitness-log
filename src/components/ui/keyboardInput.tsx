@@ -1,23 +1,24 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { View, Animated } from "react-native";
 import { Text } from "./text";
 import { useKeyboard } from "./keyboardProvider";
-import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
+import { Button } from "./button";
+import { cn } from "@/lib/utils";
 
 interface CustomKeyboardInputProps {
   id: string;
-  placeholder?: string;
   onSubmit?: (value: string) => void;
   value?: string;
   onChange?: (value: string) => void;
+  className?: string;
 }
 
 const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   id,
-  placeholder,
   onSubmit,
   value: externalValue,
   onChange,
+  className,
 }) => {
   const {
     activeInputId,
@@ -29,8 +30,6 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
     isKeyboardVisible,
   } = useKeyboard();
 
-  console.log("inputValues", inputValues);
-
   const cursorOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -41,9 +40,9 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   useEffect(() => {
     if (!isKeyboardVisible && currentValue) {
       onChange?.(currentValue);
-      onSubmit?.(currentValue);
+      onSubmit?.(inputValues[id]);
     }
-  }, [isKeyboardVisible, currentValue, onChange, onSubmit]);
+  }, [isKeyboardVisible, currentValue, onChange, onSubmit, inputValues, id]);
 
   useEffect(() => {
     if (isKeyboardVisible && activeInputId === id) {
@@ -72,18 +71,20 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   };
 
   return (
-    <View className="w-full items-center my-2.5">
-      <GHTouchableOpacity
-        className="w-4/5 p-4 border border-gray-300 rounded bg-gray-50"
+    <View className={cn("w-full items-center", className)}>
+      <Button
+        variant="outline"
+        className="w-20 h-10 rounded-xl"
         onPress={handlePressInput}
       >
         <View className="flex-row justify-center items-center">
           <Text
-            className={`text-base text-center ${!inputValues[id] ? "text-gray-400" : "text-gray-900"}`}
+            className={`text-base text-center`}
+            style={{ width: inputValues[id] ? "auto" : 0 }}
           >
-            {inputValues[id] || placeholder}
+            {inputValues[id]}
           </Text>
-          {isKeyboardVisible && (
+          {isKeyboardVisible && activeInputId === id && (
             <Animated.View
               style={{
                 opacity: cursorOpacity,
@@ -95,7 +96,7 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
             />
           )}
         </View>
-      </GHTouchableOpacity>
+      </Button>
     </View>
   );
 };

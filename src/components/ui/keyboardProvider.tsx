@@ -20,6 +20,7 @@ interface KeyboardContextProps {
   inputValues: Record<string, string>;
   handleKeyPress: (key: string) => void;
   isKeyboardVisible: boolean;
+  deleteInput: (id: string) => void;
 }
 
 const KeyboardContext = createContext<KeyboardContextProps | null>(null);
@@ -39,6 +40,11 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
   const unregisterInput = (id: string) => {
     const index = inputOrder.indexOf(id);
     if (index > -1) inputOrder.splice(index, 1);
+  };
+
+  const deleteInput = (id: string) => {
+    unregisterInput(id);
+    delete inputValues[id];
   };
 
   const focusNext = (currentId: string) => {
@@ -69,6 +75,7 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const handleDone = () => {
+    console.log("done", inputValues);
     setActiveInput(null);
   };
 
@@ -101,6 +108,7 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
         inputValues,
         handleKeyPress,
         isKeyboardVisible,
+        deleteInput,
       }}
     >
       {children}
