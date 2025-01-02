@@ -97,19 +97,36 @@ export enum category {
   plyometrics = "plyometrics",
 }
 
+export interface workoutLog {
+  id: string;
+  name?: string;
+  date: string;
+  exercises: workoutLogExercise[];
+  notes?: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  duration: number; // in seconds
+  is_synced: boolean; // 0 = not synced, 1 = synced
+}
+
 export interface workoutLogExercise {
   id: string;
   sets: Set[];
-  notes: string;
-  weight_unit: string;
+  notes?: string;
+  weight_unit?: string; // kg or lbs. Default is kg
+  exercise_id: string;
+  exercise_name: string;
 }
 
 export interface Set {
   id: string;
+  setNumber: number;
   weight: number;
   reps: number;
-  rpe: number;
-  done: boolean;
-  is_warmup: boolean;
-  rest_time: number;
+  rpe?: number;
+  isDone: boolean;
+  is_warmup?: boolean; // true if this set is a warmup set
+  rest_time?: number;
+  previousWeight?: number;
 }

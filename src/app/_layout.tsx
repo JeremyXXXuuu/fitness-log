@@ -8,6 +8,8 @@ import * as React from "react";
 import { Platform } from "react-native";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { PortalHost } from "@rn-primitives/portal";
+import { KeyboardProvider } from "@/components/ui/keyboardProvider";
 
 const LIGHT_THEME: Theme = {
   dark: false,
@@ -63,45 +65,49 @@ export default function RootLayout() {
   console.log("isDarkColorScheme", isDarkColorScheme);
   return (
     <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-      <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-      <Stack>
-        <Stack.Screen
-          name="home"
-          options={{
-            title: "Home",
-            headerShown: false,
-            headerLargeTitle: false,
-            headerShadowVisible: false,
-            headerStyle: {
-              backgroundColor: "#fff",
-            },
-            headerLargeTitleStyle: {
-              fontSize: 32,
-            },
-          }}
-        />
-        <Stack.Screen
-          name="index"
-          options={{
-            title: "Settings",
-            headerShown: false,
-            headerLargeTitle: false,
-            headerShadowVisible: false,
-            headerStyle: {
-              backgroundColor: "#fff",
-            },
-            headerLargeTitleStyle: {
-              fontSize: 32,
-            },
-          }}
-        />
-        <Stack.Screen
-          name="modal"
-          options={{
-            presentation: "modal",
-          }}
-        />
-      </Stack>
+      <KeyboardProvider>
+        <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+        <Tabs>
+          <Stack.Screen
+            name="home"
+            options={{
+              title: "Home",
+              headerShown: false,
+              headerLargeTitle: false,
+              headerShadowVisible: false,
+              headerStyle: {
+                backgroundColor: "#fff",
+              },
+              headerLargeTitleStyle: {
+                fontSize: 32,
+              },
+            }}
+          />
+          <Stack.Screen
+            name="index"
+            options={{
+              title: "Settings",
+              headerShown: false,
+              headerLargeTitle: false,
+              headerShadowVisible: false,
+              headerStyle: {
+                backgroundColor: "#fff",
+              },
+              headerLargeTitleStyle: {
+                fontSize: 32,
+              },
+            }}
+          />
+          <Stack.Screen
+            name="modal"
+            options={{
+              presentation: "modal",
+            }}
+          />
+        </Tabs>
+        {/* Default Portal Host (one per app) */}
+      </KeyboardProvider>
+      <PortalHost />
     </ThemeProvider>
   );
 }

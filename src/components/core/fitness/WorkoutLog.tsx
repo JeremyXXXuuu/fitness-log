@@ -1,45 +1,28 @@
-import React, { useState } from "react";
-import { ScrollView, Text, Button, StyleSheet } from "react-native";
-import { Workout, Exercise } from "../../../types/fitness";
+import React, { useEffect } from "react";
+import { ScrollView, Text, Button } from "react-native";
+import { useWorkoutStore } from "@/store/workoutStore";
 import ExerciseComponent from "./ExerciseComponent";
 
 export default function WorkoutLog() {
-  const [workout, setWorkout] = useState<Workout>({
-    id: "1",
-    name: "Leg Workout",
-    date: new Date(),
-    exercises: [],
-  });
+  const { currentWorkout, startNewWorkout, addExercise } = useWorkoutStore();
 
-  const addExercise = () => {
-    const newExercise: Exercise = {
-      id: Date.now().toString(),
-      name: "",
-      sets: [],
-    };
-    setWorkout({
-      ...workout,
-      exercises: [...workout.exercises, newExercise],
-    });
-  };
+  useEffect(() => {
+    if (!currentWorkout) {
+      startNewWorkout();
+    }
+  }, [currentWorkout, startNewWorkout]);
+
+  if (!currentWorkout) return null;
 
   return (
     <ScrollView className="h-full w-full">
-      <Text>{workout.name}</Text>
-      <Text>{workout.date.toLocaleDateString()}</Text>
+      <Text>{currentWorkout.name}</Text>
+      <Text>{new Date(currentWorkout.date).toLocaleString()}</Text>
 
-      {workout.exercises.map(exercise => (
+      {currentWorkout.exercises.map(exercise => (
         <ExerciseComponent
           key={exercise.id}
           exercise={exercise}
-          onUpdate={updatedExercise => {
-            setWorkout({
-              ...workout,
-              exercises: workout.exercises.map(e =>
-                e.id === updatedExercise.id ? updatedExercise : e,
-              ),
-            });
-          }}
         />
       ))}
 

@@ -1,37 +1,26 @@
 import React from "react";
 import { View, Button } from "react-native";
-import { Exercise, Set } from "../../../types/fitness";
+import { workoutLogExercise } from "@/db/types";
+import { useWorkoutStore } from "@/store/workoutStore";
 import SetComponent from "./SetComponent";
 import { Text } from "../../ui/text";
 import { Input } from "../../ui/input";
 
 interface Props {
-  exercise: Exercise;
-  onUpdate: (exercise: Exercise) => void;
+  exercise: workoutLogExercise;
 }
 
-export default function ExerciseComponent({ exercise, onUpdate }: Props) {
-  const addSet = () => {
-    const newSet: Set = {
-      id: Date.now().toString(),
-      setNumber: exercise.sets.length + 1,
-      weight: 0,
-      previousWeight: 0,
-      reps: 0,
-      isDone: false,
-    };
-    onUpdate({
-      ...exercise,
-      sets: [...exercise.sets, newSet],
-    });
-  };
+export default function ExerciseComponent({ exercise }: Props) {
+  const { addSet, updateExercise } = useWorkoutStore();
 
   return (
     <View className="p-4 bg-background">
       <Input
-        value={exercise.name}
+        value={exercise.exercise_name}
         placeholder="Exercise name"
-        onChangeText={text => onUpdate({ ...exercise, name: text })}
+        onChangeText={text =>
+          updateExercise({ ...exercise, exercise_name: text })
+        }
       />
       <View className="flex flex-row items-center justify-between py-2 bg-background">
         <Text>Set</Text>
@@ -45,27 +34,14 @@ export default function ExerciseComponent({ exercise, onUpdate }: Props) {
       {exercise.sets.map(set => (
         <SetComponent
           key={set.id}
+          exerciseId={exercise.id}
           set={set}
-          onDelete={() => {
-            onUpdate({
-              ...exercise,
-              sets: exercise.sets.filter(s => s.id !== set.id),
-            });
-          }}
-          onUpdate={updatedSet => {
-            onUpdate({
-              ...exercise,
-              sets: exercise.sets.map(s =>
-                s.id === updatedSet.id ? updatedSet : s,
-              ),
-            });
-          }}
         />
       ))}
 
       <Button
         title="Add Set"
-        onPress={addSet}
+        onPress={() => addSet(exercise.id)}
       />
     </View>
   );
