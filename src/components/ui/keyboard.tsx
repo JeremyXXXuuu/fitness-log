@@ -30,16 +30,22 @@ const CustomKeyboard: React.FC<CustomKeyboardProps> = ({ onKeyPress }) => {
       <View className="w-[30%]">
         <Button
           className="m-0.5 justify-center items-center"
+          onPress={() => onKeyPress("done")}
+        >
+          <Text className="text-center">Done</Text>
+        </Button>
+        <Button
+          className="m-0.5 justify-center items-center"
           onPress={() => onKeyPress("clear")}
         >
           <Text className="text-center">Clear</Text>
         </Button>
-        <Button
+        {/* <Button
           className="m-0.5 justify-center items-center "
           onPress={() => onKeyPress("rpe")}
         >
           <Text className="text-center">RPE</Text>
-        </Button>
+        </Button> */}
         <Button
           className="m-0.5 justify-center items-center"
           onPress={() => onKeyPress("-")}

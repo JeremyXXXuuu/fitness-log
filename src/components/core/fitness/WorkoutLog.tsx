@@ -5,6 +5,7 @@ import ExerciseComponent from "./ExerciseComponent";
 
 export default function WorkoutLog() {
   const { currentWorkout, startNewWorkout, addExercise } = useWorkoutStore();
+  const hasHydrated = useWorkoutStore(state => state._hasHydrated);
 
   useEffect(() => {
     if (!currentWorkout) {
@@ -12,6 +13,10 @@ export default function WorkoutLog() {
     }
   }, [currentWorkout, startNewWorkout]);
 
+  if (!hasHydrated) {
+    console.log("Loading...");
+    return <p>Loading...</p>;
+  }
   if (!currentWorkout) return null;
 
   return (

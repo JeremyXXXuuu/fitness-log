@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Animated } from "react-native";
 import { Text } from "./text";
 import { useKeyboard } from "./keyboardProvider";
@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 interface CustomKeyboardInputProps {
   id: string;
   onSubmit?: (value: string) => void;
-  value?: string;
+  keyboardType?: "numbers" | "rpe";
+  value?: number;
   onChange?: (value: string) => void;
   className?: string;
 }
@@ -16,6 +17,7 @@ interface CustomKeyboardInputProps {
 const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   id,
   onSubmit,
+  keyboardType = "numbers",
   value: externalValue,
   onChange,
   className,
@@ -24,11 +26,26 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
     activeInputId,
     registerInput,
     unregisterInput,
-    setActiveInput,
-    currentValue,
+    setActiveInputId,
     inputValues,
+    setInputValues,
     isKeyboardVisible,
+    setKeyboardType,
+    pendingUpdates,
   } = useKeyboard();
+
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Set initial value on mount
+  useEffect(() => {
+    if (!isInitialized && externalValue !== 0) {
+      setInputValues(prev => ({
+        ...prev,
+        [id]: externalValue?.toString() || "",
+      }));
+      setIsInitialized(true);
+    }
+  }, [id, externalValue, setInputValues, isInitialized]);
 
   const cursorOpacity = useRef(new Animated.Value(0)).current;
 
@@ -38,14 +55,14 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   }, [id, registerInput, unregisterInput]);
 
   useEffect(() => {
-    if (!isKeyboardVisible && inputValues[id]) {
-      const value = inputValues[id];
+    if (!isKeyboardVisible && pendingUpdates[id]) {
+      const value = pendingUpdates[id];
       requestAnimationFrame(() => {
         onChange?.(value);
         onSubmit?.(value);
       });
     }
-  }, [isKeyboardVisible, id]);
+  }, [isKeyboardVisible, id, pendingUpdates]);
 
   useEffect(() => {
     if (isKeyboardVisible && activeInputId === id) {
@@ -70,20 +87,22 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   }, [isKeyboardVisible, cursorOpacity, activeInputId, id]);
 
   const handlePressInput = () => {
-    setActiveInput(id);
+    console.log("Press input", id);
+    setActiveInputId(id);
+    setKeyboardType(keyboardType);
   };
 
   return (
     <View className={cn("w-full items-center", className)}>
       <Button
         variant="outline"
-        className="w-20 h-10 rounded-xl"
+        className="w-16 h-10 rounded-xl"
         onPress={handlePressInput}
       >
         <View className="flex-row justify-center items-center">
           <Text
             className={`text-base text-center`}
-            style={{ width: inputValues[id] ? "auto" : 0 }}
+            style={{ width: inputValues[id] || externalValue ? "auto" : 0 }}
           >
             {inputValues[id]}
           </Text>

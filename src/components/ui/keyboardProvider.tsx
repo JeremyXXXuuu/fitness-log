@@ -5,23 +5,28 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Animated, SafeAreaView } from "react-native";
+import { Animated, Platform, SafeAreaView, View } from "react-native";
 import CustomKeyboard from "./keyboard";
 import { Button } from "./button";
 import { Text } from "./text";
 import RPEKeyboard from "./rpe-keyboard";
+import { useWorkoutStore } from "@/store/workoutStore";
 
 interface KeyboardContextProps {
   activeInputId: string | null;
   registerInput: (id: string) => void;
   unregisterInput: (id: string) => void;
-  setActiveInput: (id: string | null) => void;
+  setActiveInputId: (id: string | null) => void;
   focusNext: (currentId: string) => void;
   currentValue: string;
   inputValues: Record<string, string>;
+  setInputValues: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   handleKeyPress: (key: string) => void;
   isKeyboardVisible: boolean;
   deleteInput: (id: string) => void;
+  setKeyboardType: React.Dispatch<React.SetStateAction<"numbers" | "rpe">>;
+  pendingUpdates: Record<string, string>;
+  checkSetIsComplete: (targetSetId: string) => boolean;
 }
 
 const KeyboardContext = createContext<KeyboardContextProps | null>(null);
@@ -29,12 +34,15 @@ const KeyboardContext = createContext<KeyboardContextProps | null>(null);
 export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [activeInputId, setActiveInput] = useState<string | null>(null);
+  const [activeInputId, setActiveInputId] = useState<string | null>(null);
   const [currentValue, setCurrentValue] = useState("");
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const inputOrder: string[] = [];
   const [keyboardType, setKeyboardType] = useState<"numbers" | "rpe">(
     "numbers",
+  );
+  const [pendingUpdates, setPendingUpdates] = useState<Record<string, string>>(
+    {},
   );
 
   const registerInput = (id: string) => {
@@ -58,11 +66,19 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
   const focusNext = (currentId: string) => {
     const currentIndex = inputOrder.indexOf(currentId);
     const nextIndex = (currentIndex + 1) % inputOrder.length; // Loop back to the first input
-    setActiveInput(inputOrder[nextIndex]);
+    setActiveInputId(inputOrder[nextIndex]);
   };
 
-  const handleKeyPress = (key: string) => {
+  const handleKeyPress = (key: string, value?: string) => {
     if (!activeInputId) return;
+
+    if (key === "rpe-input" && value) {
+      const newValue = value;
+      setCurrentValue(newValue);
+      setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
+      setPendingUpdates(prev => ({ ...prev, [activeInputId]: newValue }));
+      return;
+    }
 
     if (key === "rpe") {
       setKeyboardType("rpe");
@@ -72,23 +88,65 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
       const newValue = currentValue.slice(0, -1);
       setCurrentValue(newValue);
       setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
+      setPendingUpdates(prev => ({ ...prev, [activeInputId]: newValue }));
     } else if (key === "clear") {
       setCurrentValue("");
       setInputValues(prev => ({ ...prev, [activeInputId]: "" }));
+      setPendingUpdates(prev => ({ ...prev, [activeInputId]: "" }));
     } else if (key === "next") {
       focusNext(activeInputId);
     } else if (key === "hide") {
-      setActiveInput(null);
+      setActiveInputId(null);
+    } else if (key === "done") {
+      handleDone();
     } else {
       const newValue = currentValue + key;
       setCurrentValue(newValue);
       setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
+      setPendingUpdates(prev => ({ ...prev, [activeInputId]: newValue }));
     }
   };
 
+  const { updateSetById } = useWorkoutStore();
+
+  const checkSetIsComplete = (targetSetId: string) => {
+    // Combine current inputValues and pendingUpdates
+    const allValues = { ...inputValues, ...pendingUpdates };
+    const setValues: Record<string, string> = {};
+
+    // Filter and collect only values for the target setId
+    Object.entries(allValues).forEach(([id, value]) => {
+      const [_, setId, field] = id.split("-");
+      if (setId === targetSetId) {
+        setValues[field] = value;
+      }
+    });
+
+    // Check if weight and reps are filled (rpe is optional)
+    const isComplete = !!(
+      setValues.weight &&
+      setValues.weight !== "" &&
+      setValues.reps &&
+      setValues.reps !== ""
+    );
+    return isComplete;
+  };
+
   const handleDone = () => {
-    console.log("done", inputValues);
-    setActiveInput(null);
+    // if (activeInputId) {
+    //   const [_, setId] = activeInputId.split("-");
+    //   if (!checkSetIsComplete(setId)) {
+    //     return; // Don't close keyboard if current set is incomplete
+    //   }
+    // }
+
+    // Trigger all pending updates before closing keyboard
+    Object.entries(pendingUpdates).forEach(([id, value]) => {
+      const [exerciseId, setId, field] = id.split("-");
+      updateSetById(exerciseId, { id: setId, [field]: parseFloat(value) });
+    });
+    setPendingUpdates({});
+    setActiveInputId(null);
   };
 
   useEffect(() => {
@@ -108,22 +166,35 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
     }).start();
   }, [isKeyboardVisible, slideAnim]);
 
+  const KEYBOARD_HEIGHT = Platform.OS === "ios" ? 240 : 250; // Estimated height including safe area
+
   return (
     <KeyboardContext.Provider
       value={{
         activeInputId,
         registerInput,
         unregisterInput,
-        setActiveInput,
+        setActiveInputId,
         focusNext,
         currentValue,
         inputValues,
+        setInputValues,
         handleKeyPress,
         isKeyboardVisible,
         deleteInput,
+        setKeyboardType,
+        pendingUpdates,
+        checkSetIsComplete,
       }}
     >
-      {children}
+      <View
+        style={{
+          flex: 1,
+          paddingBottom: isKeyboardVisible ? KEYBOARD_HEIGHT : 0,
+        }}
+      >
+        {children}
+      </View>
       {isKeyboardVisible && (
         <Animated.View
           className="w-full bg-gray-900 rounded-t-3xl"

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { View, Animated, Pressable } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
-import { Text } from "../../ui/text";
+import { Text } from "@/components/ui/text";
 import { Set } from "@/db/types";
 import { useKeyboard } from "@/components/ui/keyboardProvider";
 import CustomKeyboardInput from "@/components/ui/keyboardInput";
@@ -14,8 +14,8 @@ interface Props {
 
 export default function SetComponent({ exerciseId, set }: Props) {
   const animatedValue = useRef(new Animated.Value(0)).current;
-  const { deleteInput } = useKeyboard();
-  const { updateSet, deleteSet } = useWorkoutStore();
+  const { deleteInput, checkSetIsComplete } = useKeyboard();
+  const { updateSetById, deleteSet } = useWorkoutStore();
 
   // Update the animated color when `set.isDone` changes
   useEffect(() => {
@@ -33,10 +33,15 @@ export default function SetComponent({ exerciseId, set }: Props) {
   });
 
   const handleDelete = () => {
-    console.log("delete set", set);
     deleteInput(set.id + "weight");
     deleteInput(set.id + "Reps");
     deleteSet(exerciseId, set.id);
+  };
+
+  const handlePressDone = () => {
+    if (checkSetIsComplete(set.id)) {
+      updateSetById(exerciseId, { id: set.id, isDone: !set.isDone });
+    }
   };
 
   // Render right swipe actions
@@ -63,17 +68,6 @@ export default function SetComponent({ exerciseId, set }: Props) {
     );
   };
 
-  // Handle submit for custom keyboard
-  const handleSubmitWeight = (text: string) => {
-    console.log("weight", text);
-    updateSet(exerciseId, { ...set, weight: parseFloat(text) || 0 });
-  };
-
-  const handleSubmitReps = (text: string) => {
-    console.log("reps", text);
-    updateSet(exerciseId, { ...set, reps: parseInt(text) || 0 });
-  };
-
   return (
     // swipeable not working when swipe on set number input
     <Swipeable
@@ -91,27 +85,34 @@ export default function SetComponent({ exerciseId, set }: Props) {
         ) : (
           <Text> - </Text>
         )}
-        <View className="flex flex-row items-center justify-between gap-3">
+        <View className="flex flex-row items-center justify-between gap-2">
           {/* Input for Weight */}
           <CustomKeyboardInput
-            id={set.id + "weight"}
-            className="w-20"
-            onSubmit={handleSubmitWeight}
+            id={`${exerciseId}-${set.id}-weight`}
+            value={set.weight}
+            className="w-30"
           />
 
           {/* Input for Reps */}
           <CustomKeyboardInput
-            id={set.id + "Reps"}
-            className="w-20"
-            onSubmit={handleSubmitReps}
+            id={`${exerciseId}-${set.id}-reps`}
+            value={set.reps}
+            className="w-30"
+          />
+
+          {/* Input for RPE */}
+          <CustomKeyboardInput
+            id={`${exerciseId}-${set.id}-rpe`}
+            value={set.rpe}
+            keyboardType="rpe"
+            className="w-30"
           />
 
           {/* Toggle Done Button */}
           <Pressable
-            onPress={() =>
-              updateSet(exerciseId, { ...set, isDone: !set.isDone })
-            }
+            onPress={checkSetIsComplete(set.id) ? handlePressDone : undefined}
             className="h-10 w-10 rounded-full justify-center items-center"
+            style={{ opacity: checkSetIsComplete(set.id) ? 1 : 0.5 }}
           >
             <Animated.View
               style={{ backgroundColor }}

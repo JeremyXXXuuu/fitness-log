@@ -3,8 +3,8 @@ import { View, Button } from "react-native";
 import { workoutLogExercise } from "@/db/types";
 import { useWorkoutStore } from "@/store/workoutStore";
 import SetComponent from "./SetComponent";
-import { Text } from "../../ui/text";
-import { Input } from "../../ui/input";
+import { Text } from "@/components/ui/text";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   exercise: workoutLogExercise;
@@ -28,6 +28,7 @@ export default function ExerciseComponent({ exercise }: Props) {
         <View className="flex flex-row items-center justify-between gap-5">
           <Text className="w-20 text-center">Weight</Text>
           <Text className="w-20 text-center">Reps</Text>
+          <Text className="w-10 text-center">RPE</Text>
           <Text className="w-10 text-center">Done</Text>
         </View>
       </View>

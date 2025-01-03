@@ -11,7 +11,10 @@ interface WorkoutState {
   deleteExercise: (id: string) => void;
   addSet: (exerciseId: string) => void;
   updateSet: (exerciseId: string, set: Set) => void;
+  updateSetById: (exerciseId: string, updates: Partial<Set>) => void;
   deleteSet: (exerciseId: string, setId: string) => void;
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const useWorkoutStore = create<WorkoutState>()(
@@ -92,6 +95,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           weight: 0,
           previousWeight: 0,
           reps: 0,
+          rpe: 0,
           isDone: false,
         };
 
@@ -108,6 +112,41 @@ export const useWorkoutStore = create<WorkoutState>()(
       updateSet: (exerciseId: string, updatedSet: Set) => {
         const workout = get().currentWorkout;
         if (!workout) return;
+        console.log("updatedSet", updatedSet);
+        set({
+          currentWorkout: {
+            ...workout,
+            exercises: workout.exercises.map(e =>
+              e.id === exerciseId
+                ? {
+                    ...e,
+                    sets: e.sets.map(s => {
+                      return s.id === updatedSet.id ? updatedSet : s;
+                    }),
+                  }
+                : e,
+            ),
+          },
+        });
+      },
+
+      updateSetById: (exerciseId: string, updates: Partial<Set>) => {
+        const workout = get().currentWorkout;
+        if (!workout) return;
+
+        const exercise = workout.exercises.find(e => e.id === exerciseId);
+        if (!exercise) return;
+
+        // Validate numeric fields
+        if ("weight" in updates) {
+          updates.weight = Number.isFinite(updates.weight) ? updates.weight : 0;
+        }
+        if ("reps" in updates) {
+          updates.reps = Number.isFinite(updates.reps) ? updates.reps : 0;
+        }
+        if ("rpe" in updates) {
+          updates.rpe = Number.isFinite(updates.rpe) ? updates.rpe : 0;
+        }
 
         set({
           currentWorkout: {
@@ -117,7 +156,7 @@ export const useWorkoutStore = create<WorkoutState>()(
                 ? {
                     ...e,
                     sets: e.sets.map(s =>
-                      s.id === updatedSet.id ? updatedSet : s,
+                      s.id === updates.id ? { ...s, ...updates } : s,
                     ),
                   }
                 : e,
@@ -130,21 +169,37 @@ export const useWorkoutStore = create<WorkoutState>()(
         const workout = get().currentWorkout;
         if (!workout) return;
 
+        const exercise = workout.exercises.find(e => e.id === exerciseId);
+        if (!exercise) return;
+
+        // Filter out the deleted set
+        const updatedSets = exercise.sets.filter(s => s.id !== setId);
+
+        // Renumber the remaining sets
+        const renumberedSets = updatedSets.map((s, index) => ({
+          ...s,
+          setNumber: index + 1,
+        }));
+
         set({
           currentWorkout: {
             ...workout,
             exercises: workout.exercises.map(e =>
-              e.id === exerciseId
-                ? { ...e, sets: e.sets.filter(s => s.id !== setId) }
-                : e,
+              e.id === exerciseId ? { ...e, sets: renumberedSets } : e,
             ),
           },
         });
       },
+
+      _hasHydrated: false,
+      setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
     }),
     {
       name: "workout-storage",
       storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => state => {
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );

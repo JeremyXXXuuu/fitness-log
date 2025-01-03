@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface RPEKeyboardProps {
-  onKeyPress: (key: string) => void;
+  onKeyPress: (key: string, value?: string) => void;
 }
 
 //6, 6,5, 7, 7,5 .... 9.5, 10 , user friendly Effort Description
@@ -36,7 +36,7 @@ const RPEKeyboard: React.FC<RPEKeyboardProps> = ({ onKeyPress }) => {
   const [rpe, setRPE] = React.useState("");
   const onSelectRPE = (value: string) => {
     setRPE(value);
-    console.log(value);
+    onKeyPress("rpe-input", value);
   };
   const insets = useSafeAreaInsets();
 
@@ -54,12 +54,12 @@ const RPEKeyboard: React.FC<RPEKeyboardProps> = ({ onKeyPress }) => {
     >
       <View className="h-28 flex-row mb-2 mt-0 justify-between">
         <View className="flex-col w-[15%] m-2 justify-center">
-          <Button
+          {/* <Button
             className="mb-2 w-full justify-center items-center text-center self-center"
             onPress={() => onKeyPress("numbers")}
           >
             <Text> 🔙 </Text>
-          </Button>
+          </Button> */}
           <Popover>
             <PopoverTrigger asChild>
               <Button className=" w-full justify-center items-center text-center self-center">
