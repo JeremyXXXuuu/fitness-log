@@ -93,33 +93,35 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   };
 
   return (
-    <View className={cn("w-full items-center", className)}>
-      <Button
-        variant="outline"
-        className="w-16 h-10 rounded-xl"
-        onPress={handlePressInput}
-      >
-        <View className="flex-row justify-center items-center">
-          <Text
-            className={`text-base text-center`}
-            style={{ width: inputValues[id] || externalValue ? "auto" : 0 }}
-          >
-            {inputValues[id]}
-          </Text>
-          {isKeyboardVisible && activeInputId === id && (
-            <Animated.View
-              style={{
-                opacity: cursorOpacity,
-                backgroundColor: "#000",
-                width: 2,
-                height: 20,
-                marginLeft: 2,
-              }}
-            />
-          )}
-        </View>
-      </Button>
-    </View>
+    <Button
+      variant="outline"
+      className={cn(
+        "rounded-xl items-center",
+        activeInputId === id && "bg-accent",
+        className,
+      )}
+      onPress={handlePressInput}
+    >
+      <View className="flex-row justify-center items-center">
+        <Text
+          className={`text-base text-center`}
+          style={{ width: inputValues[id] || externalValue ? "auto" : 0 }}
+        >
+          {inputValues[id]}
+        </Text>
+        {isKeyboardVisible && activeInputId === id && (
+          <Animated.View
+            style={{
+              opacity: cursorOpacity,
+              backgroundColor: "#000",
+              width: 2,
+              height: 20,
+              marginLeft: 2,
+            }}
+          />
+        )}
+      </View>
+    </Button>
   );
 };
 
