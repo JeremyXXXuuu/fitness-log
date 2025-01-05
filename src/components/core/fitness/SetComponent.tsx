@@ -6,6 +6,8 @@ import { Set } from "@/db/types";
 import { useKeyboard } from "@/components/ui/keyboardProvider";
 import CustomKeyboardInput from "@/components/ui/keyboardInput";
 import { useWorkoutStore } from "@/store/workoutStore";
+import { NAV_THEME } from "@/lib/constants";
+import { useColorScheme } from "@/lib/useColorScheme";
 
 interface Props {
   exerciseId: string;
@@ -16,6 +18,10 @@ export default function SetComponent({ exerciseId, set }: Props) {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const { deleteInput, checkSetIsComplete } = useKeyboard();
   const { updateSetById, deleteSet } = useWorkoutStore();
+  const { isDarkColorScheme } = useColorScheme();
+  const bgColor = isDarkColorScheme
+    ? NAV_THEME.dark.background
+    : NAV_THEME.light.background;
 
   // Update the animated color when `set.isDone` changes
   useEffect(() => {
@@ -29,7 +35,18 @@ export default function SetComponent({ exerciseId, set }: Props) {
   // Interpolated background color based on `isDone`
   const backgroundColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ["rgb(229, 231, 235)", "rgb(34, 197, 94)"],
+    outputRange: [
+      bgColor,
+      isDarkColorScheme ? "rgb(22, 101, 52)" : "rgb(220, 252, 231)", // dark green in dark mode, light green in light mode
+    ],
+  });
+
+  const checkmarkBgColor = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      "rgb(229, 231, 235)",
+      isDarkColorScheme ? "rgb(34, 197, 94)" : "rgb(34, 197, 94)",
+    ],
   });
 
   const handleDelete = () => {
@@ -48,23 +65,23 @@ export default function SetComponent({ exerciseId, set }: Props) {
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>,
   ) => {
-    const scale = progress.interpolate({
+    const translateX = progress.interpolate({
       inputRange: [0, 1],
-      outputRange: [0.8, 1],
+      outputRange: [100, 0],
     });
 
     return (
-      <Pressable
-        onPress={handleDelete}
-        className="w-20 bg-red-500 justify-center items-center"
+      <Animated.View
+        style={{ transform: [{ translateX }] }}
+        className="flex-row"
       >
-        <Animated.Text
-          className="text-white font-bold text-base"
-          style={{ transform: [{ scale }] }}
+        <Pressable
+          onPress={handleDelete}
+          className="w-20 bg-red-500 justify-center items-center rounded-xl my-0.5"
         >
-          Delete
-        </Animated.Text>
-      </Pressable>
+          <Text className="text-white font-bold text-base">Delete</Text>
+        </Pressable>
+      </Animated.View>
     );
   };
 
@@ -75,29 +92,32 @@ export default function SetComponent({ exerciseId, set }: Props) {
       friction={2}
       rightThreshold={40}
       overshootRight={false}
+      containerStyle={{ paddingHorizontal: 8 }}
     >
-      <View className="flex flex-row items-center justify-between bg-background py-1">
-        <Text>{set.setNumber}</Text>
+      <Animated.View
+        className="flex flex-row items-center justify-between py-2 my-0.5 px-4 rounded-xl"
+        style={{ backgroundColor }}
+      >
+        <Text className="w-10">{set.setNumber}</Text>
 
         {/* Previous Weight */}
-        {set.previousWeight ? (
-          <Text>Previous: {set.previousWeight}kg</Text>
-        ) : (
-          <Text> - </Text>
-        )}
-        <View className="flex flex-row items-center justify-between gap-2">
+        <Text className="w-14">
+          {set.previousWeight ? `${set.previousWeight}kg` : "-"}
+        </Text>
+
+        <View className="flex flex-row items-center justify-between w-3/5">
           {/* Input for Weight */}
           <CustomKeyboardInput
             id={`${exerciseId}-${set.id}-weight`}
             value={set.weight}
-            className="w-30"
+            className="w-14"
           />
 
           {/* Input for Reps */}
           <CustomKeyboardInput
             id={`${exerciseId}-${set.id}-reps`}
             value={set.reps}
-            className="w-30"
+            className="w-12"
           />
 
           {/* Input for RPE */}
@@ -105,7 +125,7 @@ export default function SetComponent({ exerciseId, set }: Props) {
             id={`${exerciseId}-${set.id}-rpe`}
             value={set.rpe}
             keyboardType="rpe"
-            className="w-30"
+            className="w-8"
           />
 
           {/* Toggle Done Button */}
@@ -115,14 +135,14 @@ export default function SetComponent({ exerciseId, set }: Props) {
             style={{ opacity: checkSetIsComplete(set.id) ? 1 : 0.5 }}
           >
             <Animated.View
-              style={{ backgroundColor }}
+              style={{ backgroundColor: checkmarkBgColor }}
               className="h-10 w-10 rounded-full justify-center items-center"
             >
               <Text>{set.isDone ? "✓" : ""}</Text>
             </Animated.View>
           </Pressable>
         </View>
-      </View>
+      </Animated.View>
     </Swipeable>
   );
 }
