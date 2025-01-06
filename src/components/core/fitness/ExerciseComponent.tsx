@@ -5,23 +5,31 @@ import { useWorkoutStore } from "@/store/workoutStore";
 import SetComponent from "./SetComponent";
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
+import { ExerciseDropDownMenu } from "@/components/ExerciseDropDownMenu";
 
 interface Props {
   exercise: workoutLogExercise;
 }
 
 export default function ExerciseComponent({ exercise }: Props) {
-  const { addSet, updateExercise } = useWorkoutStore();
+  const { addSet, updateExercise, deleteExercise } = useWorkoutStore();
 
   return (
-    <View className="p-4 bg-background">
-      <Input
-        value={exercise.exercise_name}
-        placeholder="Exercise name"
-        onChangeText={text =>
-          updateExercise({ ...exercise, exercise_name: text })
-        }
-      />
+    <View className="bg-background m-4">
+      <View className="flex flex-row items-center justify-between">
+        <Input
+          className="w-1/2"
+          value={exercise.exercise_name}
+          placeholder="Exercise name"
+          onChangeText={text =>
+            updateExercise({ ...exercise, exercise_name: text })
+          }
+        />
+        <ExerciseDropDownMenu
+          exerciseId={exercise.id}
+          onDelete={deleteExercise}
+        />
+      </View>
       <View className="mt-4">
         <View className="flex flex-row items-center justify-between py-2 px-4 bg-background">
           <Text className="w-8">Set</Text>
