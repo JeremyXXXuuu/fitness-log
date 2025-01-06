@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { View, Alert, Text } from "react-native";
+import { View, Alert } from "react-native";
 import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 
 import { Session } from "@supabase/supabase-js";
 import { Input } from "@/components/ui/input";
 
-export default function Account({ session }: { session: Session }) {
+interface Props {
+  session: Session;
+}
+
+export default function Account({ session }: Props) {
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
   const [website, setWebsite] = useState("");
@@ -79,13 +84,15 @@ export default function Account({ session }: { session: Session }) {
     }
   }
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   return (
-    <View>
-      <View>
-        <Input
-          value={session?.user?.email}
-          editable={false}
-        />
+    <View className="space-y-4">
+      <View className="space-y-1">
+        <Text className="text-sm text-muted-foreground">Signed in as</Text>
+        <Text className="font-medium">{session.user.email}</Text>
       </View>
       <View>
         <Input
@@ -111,11 +118,12 @@ export default function Account({ session }: { session: Session }) {
         </Button>
       </View>
 
-      <View>
-        <Button onPress={() => supabase.auth.signOut()}>
-          <Text>Sign Out</Text>
-        </Button>
-      </View>
+      <Button
+        onPress={handleSignOut}
+        variant="destructive"
+      >
+        <Text className="text-white">Sign Out</Text>
+      </Button>
     </View>
   );
 }

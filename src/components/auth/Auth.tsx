@@ -57,6 +57,12 @@ export default function Auth() {
     setLoading(false);
   }
 
+  const handleSignIn = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -98,6 +104,12 @@ export default function Auth() {
           </Button>
 
           {/* <Oauth /> */}
+        </View>
+        <View className="space-y-4">
+          <Text className="text-sm text-muted-foreground">Not signed in</Text>
+          <Button onPress={handleSignIn}>
+            <Text>Sign in with Google</Text>
+          </Button>
         </View>
       </CardContent>
     </Card>

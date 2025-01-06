@@ -2,14 +2,22 @@ import "@/styles/global.css";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Theme, ThemeProvider } from "@react-navigation/native";
-import { SplashScreen, Stack, Tabs } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
-import { Platform } from "react-native";
+import { Platform, View } from "react-native";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { PortalHost } from "@rn-primitives/portal";
-import { KeyboardProvider } from "@/components/ui/keyboardProvider";
+import { Text } from "@/components/ui/text";
+
+// db setup
+import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
+import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
+import { useFocusEffect } from "expo-router";
+import migrations from "drizzle/migrations";
+import { getDatabase, getDrizzle } from "@/db/db";
+import { useCallback, useEffect } from "react";
+import { ExerciseService } from "@/db/exercises";
 
 const LIGHT_THEME: Theme = {
   dark: false,
@@ -34,22 +42,44 @@ export default function RootLayout() {
   const { colorScheme, setColorScheme, isDarkColorScheme } = useColorScheme();
   const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
 
-  React.useEffect(() => {
+  const { success, error } = useMigrations(getDrizzle(), migrations);
+  useDrizzleStudio(getDatabase());
+  useEffect(() => {
+    if (!success) return;
+  }, [success]);
+
+  useFocusEffect(
+    // Callback should be wrapped in `React.useCallback` to avoid running the effect too often.
+    useCallback(() => {
+      // Invoked whenever the route is focused.
+      console.log("Focosued");
+      async function prepareData() {
+        await ExerciseService.fetchAndLoadExercises();
+      }
+      // prepareData();
+
+      // Return function is invoked whenever the route gets out of focus.
+      return () => {
+        console.log("This route is now unfocused.");
+      };
+    }, []),
+  );
+
+  useEffect(() => {
     (async () => {
       const theme = await AsyncStorage.getItem("theme");
       if (Platform.OS === "web") {
-        // Adds the background color to the html element to prevent white background on overscroll.
         document.documentElement.classList.add("bg-background");
       }
       if (!theme) {
-        AsyncStorage.setItem("theme", colorScheme);
+        AsyncStorage.setItem("theme", "system");
+        setColorScheme("system");
         setIsColorSchemeLoaded(true);
         return;
       }
-      const colorTheme = theme === "dark" ? "dark" : "light";
+      const colorTheme = theme as "light" | "dark" | "system";
       if (colorTheme !== colorScheme) {
         setColorScheme(colorTheme);
-
         setIsColorSchemeLoaded(true);
         return;
       }
@@ -62,52 +92,32 @@ export default function RootLayout() {
   if (!isColorSchemeLoaded) {
     return null;
   }
-  console.log("isDarkColorScheme", isDarkColorScheme);
+
+  if (error) {
+    console.error("Migration error:", error);
+    return (
+      <View>
+        <Text>Migration error: {error.message}</Text>
+      </View>
+    );
+  }
+
   return (
     <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-      <KeyboardProvider>
-        <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-        <Tabs>
-          <Stack.Screen
-            name="home"
-            options={{
-              title: "Home",
-              headerShown: false,
-              headerLargeTitle: false,
-              headerShadowVisible: false,
-              headerStyle: {
-                backgroundColor: "#fff",
-              },
-              headerLargeTitleStyle: {
-                fontSize: 32,
-              },
-            }}
-          />
-          <Stack.Screen
-            name="index"
-            options={{
-              title: "Settings",
-              headerShown: false,
-              headerLargeTitle: false,
-              headerShadowVisible: false,
-              headerStyle: {
-                backgroundColor: "#fff",
-              },
-              headerLargeTitleStyle: {
-                fontSize: 32,
-              },
-            }}
-          />
-          <Stack.Screen
-            name="modal"
-            options={{
-              presentation: "modal",
-            }}
-          />
-        </Tabs>
-        {/* Default Portal Host (one per app) */}
-      </KeyboardProvider>
-      <PortalHost />
+      <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+      <Stack>
+        <Stack.Screen
+          name="(tabs)"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="workout"
+          options={{
+            presentation: "modal",
+            headerShown: false,
+          }}
+        />
+      </Stack>
     </ThemeProvider>
   );
 }

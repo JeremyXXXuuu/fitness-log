@@ -11,6 +11,8 @@ import {
   Calendar,
   CalendarList,
 } from "react-native-calendars";
+import { NAV_THEME } from "@/lib/constants";
+import { useColorScheme } from "@/lib/useColorScheme";
 
 interface AgendaItem {
   title: string;
@@ -133,21 +135,44 @@ export default function HomeScreen() {
 
 const ExpandableCalendarScreen = () => {
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
+  const { isDarkColorScheme } = useColorScheme();
+  const theme = isDarkColorScheme ? NAV_THEME.dark : NAV_THEME.light;
 
   const renderItem = ({ item }: { item: AgendaItem["data"][0] }) => {
     return (
-      <View className="flex-row p-4 bg-white mb-2 rounded-lg mx-4">
+      <View
+        className="flex-row p-4 mb-2 rounded-lg mx-4"
+        style={{ backgroundColor: theme.card }}
+      >
         <View className="flex-1">
-          <Text className="font-bold">{item.activity}</Text>
-          <Text className="text-gray-600">{item.hour}</Text>
+          <Text
+            style={{ color: theme.text }}
+            className="font-bold"
+          >
+            {item.activity}
+          </Text>
+          <Text
+            style={{ color: theme.text }}
+            className="text-gray-600"
+          >
+            {item.hour}
+          </Text>
         </View>
-        <Text className="text-gray-600">{item.duration}</Text>
+        <Text
+          style={{ color: theme.text }}
+          className="text-gray-600"
+        >
+          {item.duration}
+        </Text>
       </View>
     );
   };
 
   return (
-    <View className="h-full">
+    <View
+      className="h-full"
+      style={{ backgroundColor: theme.background }}
+    >
       <View className="items-end pr-4">
         <Button
           onPress={() => setIsCalendarExpanded(!isCalendarExpanded)}
@@ -155,7 +180,9 @@ const ExpandableCalendarScreen = () => {
           className="p-2"
           size="default"
         >
-          <Text>{isCalendarExpanded ? "▼" : "▲"}</Text>
+          <Text style={{ color: theme.text }}>
+            {isCalendarExpanded ? "▼" : "▲"}
+          </Text>
         </Button>
       </View>
 
@@ -163,15 +190,50 @@ const ExpandableCalendarScreen = () => {
         showTodayButton
         onDateChanged={date => console.log("onDateChanged", date)}
         date={new Date().toISOString().split("T")[0]}
+        theme={{
+          calendarBackground: theme.card,
+          textSectionTitleColor: theme.text,
+          selectedDayBackgroundColor: theme.primary,
+          selectedDayTextColor: theme.background,
+          todayTextColor: theme.primary,
+          dayTextColor: theme.text,
+          textDisabledColor: theme.border,
+          monthTextColor: theme.text,
+        }}
       >
-        {isCalendarExpanded ? <WeekCalendar /> : <Calendar />}
+        {isCalendarExpanded ? (
+          <WeekCalendar
+            theme={{
+              calendarBackground: theme.card,
+              textSectionTitleColor: theme.text,
+              selectedDayBackgroundColor: theme.primary,
+              selectedDayTextColor: theme.background,
+              todayTextColor: theme.primary,
+              dayTextColor: theme.text,
+              textDisabledColor: theme.border,
+            }}
+          />
+        ) : (
+          <Calendar
+            theme={{
+              calendarBackground: theme.card,
+              textSectionTitleColor: theme.text,
+              selectedDayBackgroundColor: theme.primary,
+              selectedDayTextColor: theme.background,
+              todayTextColor: theme.primary,
+              dayTextColor: theme.text,
+              textDisabledColor: theme.border,
+              monthTextColor: theme.text,
+            }}
+          />
+        )}
         <AgendaList
           sections={Object.values(mockItems)}
           renderItem={renderItem}
           sectionStyle={{
-            backgroundColor: "#f2f2f2",
             padding: 10,
             marginBottom: 8,
+            backgroundColor: theme.card,
           }}
         />
       </CalendarProvider>
