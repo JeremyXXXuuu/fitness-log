@@ -1,8 +1,10 @@
 import { View, Text, SafeAreaView, ScrollView, Animated } from "react-native";
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import { CircularProgress } from "@/components/CircularProgress";
 import { Button } from "@/components/ui/button";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { WorkoutLogService } from "@/db/workout_log";
+import { workoutLog } from "@/db/types";
 import {
   ExpandableCalendar,
   AgendaList,
@@ -20,6 +22,16 @@ interface AgendaItem {
     hour: string;
     duration: string;
     activity: string;
+  }>;
+}
+
+interface WorkoutAgendaItem {
+  title: string;
+  data: Array<{
+    hour: string;
+    duration: string;
+    activity: string;
+    id: string;
   }>;
 }
 
@@ -48,8 +60,6 @@ function getPastDate(numberOfDays: number) {
     .toISOString()
     .split("T")[0];
 }
-
-console.log("dates", dates[0]);
 
 const mockItems: { [key: string]: AgendaItem } = {
   [dates[0]]: {
@@ -137,34 +147,81 @@ const ExpandableCalendarScreen = () => {
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
   const { isDarkColorScheme } = useColorScheme();
   const theme = isDarkColorScheme ? NAV_THEME.dark : NAV_THEME.light;
+  const [workoutLogs, setWorkoutLogs] = useState<{
+    [key: string]: WorkoutAgendaItem;
+  }>({});
 
-  const renderItem = ({ item }: { item: AgendaItem["data"][0] }) => {
+  const loadWorkoutLogsCallback = useCallback(() => {
+    console.log("Focosued");
+    loadWorkoutLogs();
+  }, []);
+
+  useFocusEffect(loadWorkoutLogsCallback);
+
+  const loadWorkoutLogs = async () => {
+    const logs = await WorkoutLogService.getAllWorkoutLogs();
+    const formattedLogs = formatLogsForCalendar(logs);
+    setWorkoutLogs(formattedLogs);
+  };
+
+  const formatLogsForCalendar = (logs: workoutLog[]) => {
+    const formatted: { [key: string]: WorkoutAgendaItem } = {};
+
+    logs.forEach(log => {
+      const date = log.calendar_date;
+      if (!formatted[date]) {
+        formatted[date] = {
+          title: date,
+          data: [],
+        };
+      }
+
+      formatted[date].data.push({
+        hour: new Date(log.created_at).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        duration: `${Math.floor(log.duration / 60)}m`,
+        activity: log.name,
+        id: log.id,
+      });
+    });
+
+    return formatted;
+  };
+
+  const renderItem = ({ item }: { item: WorkoutAgendaItem["data"][0] }) => {
     return (
-      <View
-        className="flex-row p-4 mb-2 rounded-lg mx-4"
-        style={{ backgroundColor: theme.card }}
+      <Link
+        href={`/workout/${item.id}`}
+        asChild
       >
-        <View className="flex-1">
-          <Text
-            style={{ color: theme.text }}
-            className="font-bold"
-          >
-            {item.activity}
-          </Text>
+        <View
+          className="flex-row p-4 mb-2 rounded-lg mx-4"
+          style={{ backgroundColor: theme.card }}
+        >
+          <View className="flex-1">
+            <Text
+              style={{ color: theme.text }}
+              className="font-bold"
+            >
+              {item.activity}
+            </Text>
+            <Text
+              style={{ color: theme.text }}
+              className="text-gray-600"
+            >
+              {item.hour}
+            </Text>
+          </View>
           <Text
             style={{ color: theme.text }}
             className="text-gray-600"
           >
-            {item.hour}
+            {item.duration}
           </Text>
         </View>
-        <Text
-          style={{ color: theme.text }}
-          className="text-gray-600"
-        >
-          {item.duration}
-        </Text>
-      </View>
+      </Link>
     );
   };
 
@@ -228,7 +285,7 @@ const ExpandableCalendarScreen = () => {
           />
         )}
         <AgendaList
-          sections={Object.values(mockItems)}
+          sections={Object.values(workoutLogs)}
           renderItem={renderItem}
           sectionStyle={{
             padding: 10,

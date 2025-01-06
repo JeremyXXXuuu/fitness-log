@@ -100,14 +100,14 @@ export enum category {
 export interface workoutLog {
   id: string;
   name: string;
-  date: string;
   exercises: workoutLogExercise[];
-  notes?: string;
+  notes: string | null;
   user_id: string;
   created_at: string;
   updated_at: string;
   duration: number; // in seconds
-  is_synced: boolean; // 0 = not synced, 1 = synced
+  calendar_date: string; // YYYY-MM-DD
+  is_synced: number; // 0 = not synced, 1 = synced
 }
 
 export interface workoutLogExercise {

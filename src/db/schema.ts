@@ -109,11 +109,19 @@ export const workoutLogTable = sqliteTable(
     user_id: text().notNull(),
     exercises: text({ mode: "json" }).$type<workoutLogExercise[]>().notNull(),
     notes: text(),
-    created_at: text().default(sql`(CURRENT_TIMESTAMP)`),
-    updated_at: text().default(sql`(CURRENT_TIMESTAMP)`),
+    created_at: text()
+      .default(sql`(CURRENT_TIMESTAMP)`)
+      .notNull(),
+    updated_at: text()
+      .default(sql`(CURRENT_TIMESTAMP)`)
+      .notNull(),
     deleted_at: text(),
-    duration: integer().default(0),
-    is_synced: integer().default(0),
+    duration: integer().default(0).notNull(), // in seconds
+    calendar_date: text().notNull(), // ISO date string YYYY-MM-DD
+    is_synced: integer().default(0).notNull(), // 0 = not synced, 1 = synced
   },
-  t => [index("user_id_idx").on(t.user_id)],
+  t => [
+    index("user_id_idx").on(t.user_id),
+    index("calendar_date_idx").on(t.calendar_date),
+  ],
 );
