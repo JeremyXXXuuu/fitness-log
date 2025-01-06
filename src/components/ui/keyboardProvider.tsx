@@ -11,6 +11,7 @@ import { Button } from "./button";
 import { Text } from "./text";
 import RPEKeyboard from "./rpe-keyboard";
 import { useWorkoutStore } from "@/store/workoutStore";
+import { useHaptic } from "@/lib/useHaptic";
 
 interface KeyboardContextProps {
   activeInputId: string | null;
@@ -45,6 +46,9 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
     {},
   );
 
+  const haptic_light = useHaptic("light");
+  const haptic_medium = useHaptic("medium");
+
   const registerInput = (id: string) => {
     if (!inputOrder.includes(id)) inputOrder.push(id);
   };
@@ -72,6 +76,8 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleKeyPress = (key: string, value?: string) => {
     if (!activeInputId) return;
 
+    // Light haptic feedback for normal key press
+    haptic_light?.();
     if (key === "rpe-input" && value) {
       const newValue = value;
       setCurrentValue(newValue);
@@ -85,11 +91,15 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
     } else if (key === "numbers") {
       setKeyboardType("numbers");
     } else if (key === "backspace") {
+      // Light haptic for backspace
+      haptic_light?.();
       const newValue = currentValue.slice(0, -1);
       setCurrentValue(newValue);
       setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
       setPendingUpdates(prev => ({ ...prev, [activeInputId]: newValue }));
     } else if (key === "clear") {
+      // Medium haptic for clear
+      haptic_medium?.();
       setCurrentValue("");
       setInputValues(prev => ({ ...prev, [activeInputId]: "" }));
       setPendingUpdates(prev => ({ ...prev, [activeInputId]: "" }));
@@ -98,6 +108,8 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
     } else if (key === "hide") {
       setActiveInputId(null);
     } else if (key === "done") {
+      // Medium haptic for done
+      haptic_medium?.();
       handleDone();
     } else {
       const newValue = currentValue + key;

@@ -4,6 +4,7 @@ import { Text } from "./text";
 import { useKeyboard } from "./keyboardProvider";
 import { Button } from "./button";
 import { cn } from "@/lib/utils";
+import { useHaptic } from "@/lib/useHaptic";
 
 interface CustomKeyboardInputProps {
   id: string;
@@ -33,6 +34,8 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
     setKeyboardType,
     pendingUpdates,
   } = useKeyboard();
+
+  const haptic_selection = useHaptic("selection");
 
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -87,7 +90,8 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   }, [isKeyboardVisible, cursorOpacity, activeInputId, id]);
 
   const handlePressInput = () => {
-    console.log("Press input", id);
+    // Selection haptic feedback
+    haptic_selection?.();
     setActiveInputId(id);
     setKeyboardType(keyboardType);
   };

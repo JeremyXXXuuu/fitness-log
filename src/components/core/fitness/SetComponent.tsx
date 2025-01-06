@@ -8,6 +8,7 @@ import CustomKeyboardInput from "@/components/ui/keyboardInput";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { useHaptic } from "@/lib/useHaptic";
 
 interface Props {
   exerciseId: string;
@@ -22,6 +23,9 @@ export default function SetComponent({ exerciseId, set }: Props) {
   const bgColor = isDarkColorScheme
     ? NAV_THEME.dark.background
     : NAV_THEME.light.background;
+
+  const haptic_success = useHaptic("success");
+  const haptic_warning = useHaptic("warning");
 
   // Update the animated color when `set.isDone` changes
   useEffect(() => {
@@ -53,12 +57,16 @@ export default function SetComponent({ exerciseId, set }: Props) {
     deleteInput(set.id + "weight");
     deleteInput(set.id + "Reps");
     deleteSet(exerciseId, set.id);
+    haptic_success?.();
   };
 
   const handlePressDone = () => {
-    if (checkSetIsComplete(set.id)) {
-      updateSetById(exerciseId, { id: set.id, isDone: !set.isDone });
+    if (!checkSetIsComplete(set.id)) {
+      haptic_warning?.();
+      return;
     }
+    haptic_success?.();
+    updateSetById(exerciseId, { id: set.id, isDone: !set.isDone });
   };
 
   // Render right swipe actions
@@ -130,7 +138,7 @@ export default function SetComponent({ exerciseId, set }: Props) {
 
           {/* Toggle Done Button */}
           <Pressable
-            onPress={checkSetIsComplete(set.id) ? handlePressDone : undefined}
+            onPress={handlePressDone}
             className="h-10 w-10 rounded-full justify-center items-center"
             style={{ opacity: checkSetIsComplete(set.id) ? 1 : 0.5 }}
           >
