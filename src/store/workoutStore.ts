@@ -2,9 +2,12 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { workoutLog, workoutLogExercise, Set } from "@/db/types";
+import { WorkoutLogService } from "@/db/workout_log";
 
 interface WorkoutState {
   currentWorkout: workoutLog | null;
+  isWorkoutActive: boolean;
+  startTime: number | null;
   startNewWorkout: () => void;
   addExercise: () => void;
   updateExercise: (exercise: workoutLogExercise) => void;
@@ -13,6 +16,8 @@ interface WorkoutState {
   updateSet: (exerciseId: string, set: Set) => void;
   updateSetById: (exerciseId: string, updates: Partial<Set>) => void;
   deleteSet: (exerciseId: string, setId: string) => void;
+  updateWorkoutName: (name: string) => void;
+  finishWorkout: () => Promise<void>;
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
 }
@@ -21,7 +26,8 @@ export const useWorkoutStore = create<WorkoutState>()(
   persist(
     (set, get) => ({
       currentWorkout: null,
-
+      isWorkoutActive: false,
+      startTime: null,
       startNewWorkout: () =>
         set({
           currentWorkout: {
@@ -35,6 +41,8 @@ export const useWorkoutStore = create<WorkoutState>()(
             duration: 0,
             is_synced: false,
           },
+          isWorkoutActive: true,
+          startTime: Date.now(),
         }),
 
       addExercise: () => {
@@ -112,7 +120,6 @@ export const useWorkoutStore = create<WorkoutState>()(
       updateSet: (exerciseId: string, updatedSet: Set) => {
         const workout = get().currentWorkout;
         if (!workout) return;
-        console.log("updatedSet", updatedSet);
         set({
           currentWorkout: {
             ...workout,
@@ -189,6 +196,43 @@ export const useWorkoutStore = create<WorkoutState>()(
             ),
           },
         });
+      },
+
+      updateWorkoutName: (name: string) => {
+        const workout = get().currentWorkout;
+        if (!workout) return;
+        set({
+          currentWorkout: {
+            ...workout,
+            name,
+          },
+        });
+      },
+
+      finishWorkout: async () => {
+        console.log("Finishing workout...");
+        const workout = get().currentWorkout;
+        if (!workout) return;
+        const startTime = get().startTime;
+        if (!startTime) return;
+
+        const finalWorkout = {
+          ...workout,
+          duration: Math.floor((Date.now() - startTime) / 1000),
+          updated_at: new Date().toISOString(),
+        };
+
+        try {
+          await WorkoutLogService.createWorkoutLog(finalWorkout);
+          set({
+            currentWorkout: null,
+            isWorkoutActive: false,
+            startTime: null,
+          });
+          console.log("Workout saved successfully!");
+        } catch (error) {
+          console.error("Failed to save workout:", error);
+        }
       },
 
       _hasHydrated: false,

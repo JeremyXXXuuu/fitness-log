@@ -1,0 +1,1 @@
+ALTER TABLE `workout_log` DROP COLUMN `sync_version`;

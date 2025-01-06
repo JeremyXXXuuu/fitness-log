@@ -104,8 +104,9 @@ export const exercisesTable = sqliteTable(
 export const workoutLogTable = sqliteTable(
   "workout_log",
   {
-    id: integer().primaryKey({ autoIncrement: true }),
-    user_id: integer().notNull(),
+    id: text().primaryKey(),
+    name: text().notNull(),
+    user_id: text().notNull(),
     exercises: text({ mode: "json" }).$type<workoutLogExercise[]>().notNull(),
     notes: text(),
     created_at: text().default(sql`(CURRENT_TIMESTAMP)`),

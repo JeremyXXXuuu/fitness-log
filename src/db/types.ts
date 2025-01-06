@@ -99,7 +99,7 @@ export enum category {
 
 export interface workoutLog {
   id: string;
-  name?: string;
+  name: string;
   date: string;
   exercises: workoutLogExercise[];
   notes?: string;
@@ -124,7 +124,7 @@ export interface Set {
   setNumber: number;
   weight: number;
   reps: number;
-  rpe?: number;
+  rpe: number;
   isDone: boolean;
   is_warmup?: boolean; // true if this set is a warmup set
   rest_time?: number;

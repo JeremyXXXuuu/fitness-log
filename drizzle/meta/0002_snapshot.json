@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d9db5c83-1198-447d-884b-8e41d30b22c5",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "938652fe-32ff-47f9-bf70-44b41a41cf38",
+  "prevId": "686ac322-bf00-43cf-b6ba-54747b6c7b9e",
   "tables": {
     "exercises": {
       "name": "exercises",
@@ -367,7 +367,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -419,14 +419,6 @@
         },
         "is_synced": {
           "name": "is_synced",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": 0
-        },
-        "sync_version": {
-          "name": "sync_version",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
