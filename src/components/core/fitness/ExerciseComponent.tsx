@@ -14,6 +14,22 @@ interface Props {
 export default function ExerciseComponent({ exercise }: Props) {
   const { addSet, updateExercise, deleteExercise } = useWorkoutStore();
 
+  const handleAddSet = () => {
+    const lastSet = exercise.sets[exercise.sets.length - 1];
+    const newSetValues = lastSet
+      ? {
+          id: Date.now().toString(),
+          setNumber: exercise.sets.length + 1,
+          previousWeight: 0,
+          isDone: false,
+          weight: lastSet.weight,
+          reps: lastSet.reps,
+          rpe: lastSet.rpe,
+        }
+      : undefined;
+    addSet(exercise.id, newSetValues);
+  };
+
   return (
     <View className="bg-background m-4">
       <View className="flex flex-row items-center justify-between">
@@ -52,7 +68,7 @@ export default function ExerciseComponent({ exercise }: Props) {
         <View className="px-2 mt-2">
           <Button
             title="Add Set"
-            onPress={() => addSet(exercise.id)}
+            onPress={handleAddSet}
           />
         </View>
       </View>

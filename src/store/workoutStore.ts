@@ -12,7 +12,7 @@ interface WorkoutState {
   addExercise: () => void;
   updateExercise: (exercise: workoutLogExercise) => void;
   deleteExercise: (id: string) => void;
-  addSet: (exerciseId: string) => void;
+  addSet: (exerciseId: string, newSet?: Set) => void;
   updateSet: (exerciseId: string, set: Set) => void;
   updateSetById: (exerciseId: string, updates: Partial<Set>) => void;
   deleteSet: (exerciseId: string, setId: string) => void;
@@ -91,14 +91,14 @@ export const useWorkoutStore = create<WorkoutState>()(
         });
       },
 
-      addSet: (exerciseId: string) => {
+      addSet: (exerciseId: string, newSet?: Set) => {
         const workout = get().currentWorkout;
         if (!workout) return;
 
         const exercise = workout.exercises.find(e => e.id === exerciseId);
         if (!exercise) return;
 
-        const newSet: Set = {
+        const _newSet: Set = newSet || {
           id: Date.now().toString(),
           setNumber: exercise.sets.length + 1,
           weight: 0,
@@ -112,7 +112,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           currentWorkout: {
             ...workout,
             exercises: workout.exercises.map(e =>
-              e.id === exerciseId ? { ...e, sets: [...e.sets, newSet] } : e,
+              e.id === exerciseId ? { ...e, sets: [...e.sets, _newSet] } : e,
             ),
           },
         });
@@ -139,6 +139,7 @@ export const useWorkoutStore = create<WorkoutState>()(
       },
 
       updateSetById: (exerciseId: string, updates: Partial<Set>) => {
+        console.log("updateSetById", exerciseId, updates.weight);
         const workout = get().currentWorkout;
         if (!workout) return;
 
