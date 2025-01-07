@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, Button, View } from "react-native";
+import {
+  ScrollView,
+  Button,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { useWorkoutStore } from "@/store/workoutStore";
 import ExerciseComponent from "./ExerciseComponent";
 import { router } from "expo-router";
@@ -56,38 +62,43 @@ export default function WorkoutLog() {
   if (!currentWorkout) return null;
 
   return (
-    <ScrollView className="h-full w-full">
-      <View className="flex-row justify-between items-center p-4">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 w-full"
+    >
+      <ScrollView className="h-full w-full px-2 mb-10">
+        <View className="flex-row justify-between items-center p-4">
+          <Button
+            onPress={handleClose}
+            title="Close"
+          />
+          <Button
+            onPress={handleFinishWorkout}
+            title="Finish Workout"
+          />
+        </View>
+
+        <Input
+          value={currentWorkout.name}
+          onChangeText={updateWorkoutName}
+          placeholder="Workout Name"
+          className="p-2  border border-gray-300 rounded"
+        />
+
+        <Text className="text-center text-xl">{formatTime(elapsedTime)}</Text>
+
+        {currentWorkout.exercises.map(exercise => (
+          <ExerciseComponent
+            key={exercise.id}
+            exercise={exercise}
+          />
+        ))}
+
         <Button
-          onPress={handleClose}
-          title="Close"
+          title="Add Exercise"
+          onPress={addExercise}
         />
-        <Button
-          onPress={handleFinishWorkout}
-          title="Finish Workout"
-        />
-      </View>
-
-      <Input
-        value={currentWorkout.name}
-        onChangeText={updateWorkoutName}
-        placeholder="Workout Name"
-        className="p-2 m-2 border border-gray-300 rounded"
-      />
-
-      <Text className="text-center text-xl">{formatTime(elapsedTime)}</Text>
-
-      {currentWorkout.exercises.map(exercise => (
-        <ExerciseComponent
-          key={exercise.id}
-          exercise={exercise}
-        />
-      ))}
-
-      <Button
-        title="Add Exercise"
-        onPress={addExercise}
-      />
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
