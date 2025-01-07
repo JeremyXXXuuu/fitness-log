@@ -1,9 +1,4 @@
-import {
-  View,
-  Pressable,
-  Animated,
-  useColorScheme as useNativeColorScheme,
-} from "react-native";
+import { View, Pressable, Animated } from "react-native";
 import { Text } from "@/components/ui/text";
 import { useColorScheme } from "@/lib/useColorScheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -11,8 +6,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { useHaptic } from "@/lib/useHaptic";
 
 export function ThemeSwitch() {
-  const { colorScheme, setColorScheme } = useColorScheme();
-  const systemColorScheme = useNativeColorScheme();
+  const { setColorScheme } = useColorScheme();
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [selectedTheme, setSelectedTheme] = useState<
     "light" | "dark" | "system"
@@ -30,12 +24,12 @@ export function ThemeSwitch() {
   }, []);
 
   useEffect(() => {
-    if (selectedTheme === "system" && systemColorScheme) {
-      setColorScheme(systemColorScheme);
-    } else if (selectedTheme !== "system") {
+    if (selectedTheme === "system") {
+      setColorScheme("system");
+    } else {
       setColorScheme(selectedTheme);
     }
-  }, [selectedTheme, systemColorScheme]);
+  }, [selectedTheme]);
 
   const setTheme = async (theme: "light" | "dark" | "system") => {
     triggerHaptic?.();
