@@ -32,7 +32,6 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
     setInputValues,
     isKeyboardVisible,
     setKeyboardType,
-    pendingUpdates,
   } = useKeyboard();
 
   const haptic_selection = useHaptic("selection");
@@ -56,16 +55,6 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
     registerInput(id);
     return () => unregisterInput(id);
   }, [id, registerInput, unregisterInput]);
-
-  useEffect(() => {
-    if (!isKeyboardVisible && pendingUpdates[id]) {
-      const value = pendingUpdates[id];
-      requestAnimationFrame(() => {
-        onChange?.(value);
-        onSubmit?.(value);
-      });
-    }
-  }, [isKeyboardVisible, id, pendingUpdates]);
 
   useEffect(() => {
     if (isKeyboardVisible && activeInputId === id) {
@@ -120,7 +109,10 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
               backgroundColor: "#000",
               width: 2,
               height: 20,
-              marginLeft: 2,
+              position: "absolute",
+              right: -2,
+              top: "50%",
+              transform: [{ translateY: -10 }],
             }}
           />
         )}

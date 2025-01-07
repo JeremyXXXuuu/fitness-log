@@ -26,7 +26,6 @@ interface KeyboardContextProps {
   isKeyboardVisible: boolean;
   deleteInput: (id: string) => void;
   setKeyboardType: React.Dispatch<React.SetStateAction<"numbers" | "rpe">>;
-  pendingUpdates: Record<string, string>;
   checkSetIsComplete: (targetSetId: string) => boolean;
 }
 
@@ -42,10 +41,9 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
   const [keyboardType, setKeyboardType] = useState<"numbers" | "rpe">(
     "numbers",
   );
-  const [pendingUpdates, setPendingUpdates] = useState<Record<string, string>>(
-    {},
-  );
+  const [hasStartedNewInput, setHasStartedNewInput] = useState(false);
 
+  const { updateSetById } = useWorkoutStore();
   const haptic_light = useHaptic("light");
   const haptic_medium = useHaptic("medium");
 
@@ -73,57 +71,101 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
     setActiveInputId(inputOrder[nextIndex]);
   };
 
+  const parseInputId = (id: string) => {
+    const [exerciseId, setId, field] = id.split("-");
+    return { exerciseId, setId, field };
+  };
+
   const handleKeyPress = (key: string, value?: string) => {
     if (!activeInputId) return;
 
-    // Light haptic feedback for normal key press
     haptic_light?.();
-    if (key === "rpe-input" && value) {
-      const newValue = value;
-      setCurrentValue(newValue);
-      setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
-      setPendingUpdates(prev => ({ ...prev, [activeInputId]: newValue }));
-      return;
-    }
 
-    if (key === "rpe") {
-      setKeyboardType("rpe");
-    } else if (key === "numbers") {
-      setKeyboardType("numbers");
-    } else if (key === "backspace") {
-      // Light haptic for backspace
-      haptic_light?.();
-      const newValue = currentValue.slice(0, -1);
-      setCurrentValue(newValue);
-      setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
-      setPendingUpdates(prev => ({ ...prev, [activeInputId]: newValue }));
-    } else if (key === "clear") {
-      // Medium haptic for clear
-      haptic_medium?.();
-      setCurrentValue("");
-      setInputValues(prev => ({ ...prev, [activeInputId]: "" }));
-      setPendingUpdates(prev => ({ ...prev, [activeInputId]: "" }));
-    } else if (key === "next") {
-      focusNext(activeInputId);
-    } else if (key === "hide") {
-      setActiveInputId(null);
-    } else if (key === "done") {
-      // Medium haptic for done
-      haptic_medium?.();
-      handleDone();
-    } else {
-      const newValue = currentValue + key;
-      setCurrentValue(newValue);
-      setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
-      setPendingUpdates(prev => ({ ...prev, [activeInputId]: newValue }));
+    switch (key) {
+      case "rpe-input": {
+        if (!value) return;
+        const newValue = value;
+        setCurrentValue(newValue);
+        setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
+
+        const { exerciseId, setId, field } = parseInputId(activeInputId);
+        updateSetById(exerciseId, { id: setId, [field]: parseFloat(newValue) });
+        return;
+      }
+
+      case "rpe":
+        setKeyboardType("rpe");
+        break;
+
+      case "numbers":
+        setKeyboardType("numbers");
+        break;
+
+      case "backspace": {
+        if (!hasStartedNewInput) {
+          setHasStartedNewInput(true);
+          setInputValues(prev => ({ ...prev, [activeInputId]: "" }));
+        } else {
+          const newValue = currentValue.slice(0, -1);
+          setCurrentValue(newValue);
+
+          const { exerciseId, setId, field } = parseInputId(activeInputId);
+          updateSetById(exerciseId, {
+            id: setId,
+            [field]: parseFloat(newValue),
+          });
+          setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
+        }
+        break;
+      }
+
+      case "clear": {
+        haptic_medium?.();
+        setCurrentValue("");
+        setInputValues(prev => ({ ...prev, [activeInputId]: "" }));
+
+        const { exerciseId, setId, field } = parseInputId(activeInputId);
+        updateSetById(exerciseId, { id: setId, [field]: 0 });
+        break;
+      }
+
+      case "next":
+      case "hide":
+      case "done": {
+        setHasStartedNewInput(false);
+        if (key === "done") {
+          setActiveInputId(null);
+        } else if (key === "next") {
+          focusNext(activeInputId);
+        } else {
+          setActiveInputId(null);
+        }
+        break;
+      }
+
+      default: {
+        console.log("default", hasStartedNewInput);
+        const newValue = hasStartedNewInput ? currentValue + key : key;
+        const numValue = parseFloat(newValue);
+
+        if (numValue > 9999) {
+          haptic_medium?.();
+          return;
+        }
+
+        setHasStartedNewInput(true);
+        setCurrentValue(newValue);
+        setInputValues(prev => ({ ...prev, [activeInputId]: newValue }));
+
+        const { exerciseId, setId, field } = parseInputId(activeInputId);
+        updateSetById(exerciseId, { id: setId, [field]: numValue });
+      }
     }
   };
 
-  const { updateSetById } = useWorkoutStore();
-
   const checkSetIsComplete = (targetSetId: string) => {
     // Combine current inputValues and pendingUpdates
-    const allValues = { ...inputValues, ...pendingUpdates };
+    const allValues = { ...inputValues };
     const setValues: Record<string, string> = {};
 
     // Filter and collect only values for the target setId
@@ -145,25 +187,13 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const handleDone = () => {
-    // if (activeInputId) {
-    //   const [_, setId] = activeInputId.split("-");
-    //   if (!checkSetIsComplete(setId)) {
-    //     return; // Don't close keyboard if current set is incomplete
-    //   }
-    // }
-
-    // Trigger all pending updates before closing keyboard
-    Object.entries(pendingUpdates).forEach(([id, value]) => {
-      const [exerciseId, setId, field] = id.split("-");
-      updateSetById(exerciseId, { id: setId, [field]: parseFloat(value) });
-    });
-    setPendingUpdates({});
     setActiveInputId(null);
   };
 
   useEffect(() => {
     if (activeInputId) {
-      setCurrentValue(inputValues[activeInputId] || "");
+      setHasStartedNewInput(false);
+      setCurrentValue(""); // Clear current value but don't update stored value
     }
   }, [activeInputId]); // Remove inputValues from dependencies
 
@@ -195,7 +225,6 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
         isKeyboardVisible,
         deleteInput,
         setKeyboardType,
-        pendingUpdates,
         checkSetIsComplete,
       }}
     >
@@ -215,7 +244,6 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
             bottom: 0, // Positioned at the bottom of the screen
             left: 0, // Align with the left edge
             right: 0, // Align with the right edge
-            // backgroundColor: "#000",
             transform: [{ translateY: slideAnim }], // Animated transform
           }}
         >
