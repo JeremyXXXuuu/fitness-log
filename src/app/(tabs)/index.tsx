@@ -1,4 +1,11 @@
-import { View, Text, SafeAreaView, ScrollView, Animated } from "react-native";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  ScrollView,
+  Animated,
+  Pressable,
+} from "react-native";
 import { Link, useFocusEffect } from "expo-router";
 import { CircularProgress } from "@/components/CircularProgress";
 import { Button } from "@/components/ui/button";
@@ -15,6 +22,7 @@ import {
 } from "react-native-calendars";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { WorkoutLogModal } from "@/components/core/fitness/WorkoutLogModal";
 
 interface AgendaItem {
   title: string;
@@ -147,6 +155,10 @@ const ExpandableCalendarScreen = () => {
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
   const { isDarkColorScheme } = useColorScheme();
   const theme = isDarkColorScheme ? NAV_THEME.dark : NAV_THEME.light;
+
+  const calendarKey = `calendar-${isDarkColorScheme}`;
+  console.log("calendarKey", calendarKey);
+
   const [workoutLogs, setWorkoutLogs] = useState<{
     [key: string]: WorkoutAgendaItem;
   }>({});
@@ -190,38 +202,54 @@ const ExpandableCalendarScreen = () => {
     return formatted;
   };
 
+  const [selectedWorkout, setSelectedWorkout] = useState<
+    workoutLog | undefined
+  >(undefined);
+
+  const handleWorkoutPress = async (workoutId: string) => {
+    console.log("workoutId", workoutId);
+    const workout = await WorkoutLogService.getWorkoutLog(workoutId);
+    setSelectedWorkout(workout);
+  };
+
   const renderItem = ({ item }: { item: WorkoutAgendaItem["data"][0] }) => {
     return (
-      <Link
-        href={`/workout/${item.id}`}
-        asChild
+      <Pressable
+        onPress={() => handleWorkoutPress(item.id)}
+        delayLongPress={150}
+        className="mx-4"
       >
-        <View
-          className="flex-row p-4 mb-2 rounded-lg mx-4"
-          style={{ backgroundColor: theme.card }}
-        >
-          <View className="flex-1">
-            <Text
-              style={{ color: theme.text }}
-              className="font-bold"
-            >
-              {item.activity}
-            </Text>
+        {({ pressed }) => (
+          <View
+            className="flex-row p-4 mb-2 rounded-lg"
+            style={[
+              { backgroundColor: theme.card },
+              pressed && { opacity: 0.7 },
+            ]}
+          >
+            <View className="flex-1">
+              <Text
+                style={{ color: theme.text }}
+                className="font-bold"
+              >
+                {item.activity}
+              </Text>
+              <Text
+                style={{ color: theme.text }}
+                className="text-gray-600"
+              >
+                {item.hour}
+              </Text>
+            </View>
             <Text
               style={{ color: theme.text }}
               className="text-gray-600"
             >
-              {item.hour}
+              {item.duration}
             </Text>
           </View>
-          <Text
-            style={{ color: theme.text }}
-            className="text-gray-600"
-          >
-            {item.duration}
-          </Text>
-        </View>
-      </Link>
+        )}
+      </Pressable>
     );
   };
 
@@ -230,18 +258,18 @@ const ExpandableCalendarScreen = () => {
       className="h-full"
       style={{ backgroundColor: theme.background }}
     >
-      <View className="items-end pr-4">
+      {/* <View className="items-end pr-4">
         <Button
           onPress={() => setIsCalendarExpanded(!isCalendarExpanded)}
           variant="secondary"
-          className="p-2"
+          className="w-10"
           size="default"
         >
           <Text style={{ color: theme.text }}>
             {isCalendarExpanded ? "▼" : "▲"}
           </Text>
         </Button>
-      </View>
+      </View> */}
 
       <CalendarProvider
         showTodayButton
@@ -259,19 +287,8 @@ const ExpandableCalendarScreen = () => {
         }}
       >
         {isCalendarExpanded ? (
-          <WeekCalendar
-            theme={{
-              calendarBackground: theme.card,
-              textSectionTitleColor: theme.text,
-              selectedDayBackgroundColor: theme.primary,
-              selectedDayTextColor: theme.background,
-              todayTextColor: theme.primary,
-              dayTextColor: theme.text,
-              textDisabledColor: theme.border,
-            }}
-          />
-        ) : (
           <Calendar
+            key={calendarKey}
             theme={{
               calendarBackground: theme.card,
               textSectionTitleColor: theme.text,
@@ -281,6 +298,19 @@ const ExpandableCalendarScreen = () => {
               dayTextColor: theme.text,
               textDisabledColor: theme.border,
               monthTextColor: theme.text,
+            }}
+          />
+        ) : (
+          <WeekCalendar
+            key={calendarKey}
+            theme={{
+              calendarBackground: theme.card,
+              textSectionTitleColor: theme.text,
+              selectedDayBackgroundColor: theme.primary,
+              selectedDayTextColor: theme.background,
+              todayTextColor: theme.primary,
+              dayTextColor: theme.text,
+              textDisabledColor: theme.border,
             }}
           />
         )}
@@ -294,6 +324,12 @@ const ExpandableCalendarScreen = () => {
           }}
         />
       </CalendarProvider>
+      <WorkoutLogModal
+        workout={selectedWorkout}
+        visible={!!selectedWorkout}
+        onClose={() => setSelectedWorkout(undefined)}
+        onDelete={loadWorkoutLogs}
+      />
     </View>
   );
 };
