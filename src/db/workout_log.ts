@@ -8,7 +8,7 @@ type WorkoutLogInsert = typeof workoutLogTable.$inferInsert;
 export class WorkoutLogService {
   static db = getDrizzle();
 
-  static async getWorkoutLogById(id: string) {
+  static async getWorkoutLog(id: string) {
     return await WorkoutLogService.db
       .select()
       .from(workoutLogTable)
@@ -22,6 +22,13 @@ export class WorkoutLogService {
 
   static async deleteAllWorkoutLogs() {
     return await WorkoutLogService.db.delete(workoutLogTable);
+  }
+
+  static async deleteWorkoutLog(id: string) {
+    return await WorkoutLogService.db
+      .delete(workoutLogTable)
+      .where(eq(workoutLogTable.id, id))
+      .execute();
   }
 
   static async createWorkoutLog(workoutLog: workoutLog) {
