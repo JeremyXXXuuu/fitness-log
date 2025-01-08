@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, View, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  ScrollView,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  FlatList,
+} from "react-native";
 import { useWorkoutStore } from "@/store/workoutStore";
 import ExerciseComponent from "./ExerciseComponent";
 import { router } from "expo-router";
@@ -117,22 +123,26 @@ export default function WorkoutLog() {
             className="mx-2 border-0"
           />
 
-          <ScrollView className="flex-1 px-2">
-            {currentWorkout.exercises.map(exercise => (
+          <FlatList
+            className="flex-1 px-2"
+            data={currentWorkout.exercises}
+            renderItem={({ item }) => (
               <ExerciseComponent
-                key={exercise.id}
-                exercise={exercise}
+                key={item.id}
+                exercise={item}
               />
-            ))}
-
-            <Button
-              className="mb-10"
-              variant="secondary"
-              onPress={handleAddExercise}
-            >
-              <Text>ADD EXERCISE</Text>
-            </Button>
-          </ScrollView>
+            )}
+            keyExtractor={item => item.id}
+            ListFooterComponent={() => (
+              <Button
+                className="mb-10"
+                variant="secondary"
+                onPress={handleAddExercise}
+              >
+                <Text>ADD EXERCISE</Text>
+              </Button>
+            )}
+          />
         </View>
       )}
     </KeyboardAvoidingView>

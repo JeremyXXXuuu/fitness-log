@@ -19,11 +19,13 @@ import { Text } from "@/components/ui/text";
 interface ExerciseDropDownMenuProps {
   exerciseId: string;
   onDelete: (id: string) => void;
+  onReplace: () => void;
 }
 
 export function ExerciseDropDownMenu({
   exerciseId,
   onDelete,
+  onReplace,
 }: ExerciseDropDownMenuProps) {
   return (
     <DropdownMenu>
@@ -60,7 +62,7 @@ export function ExerciseDropDownMenu({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <Text>More...</Text>
-                </DropdownMenuItem>
+                </DropdownMenuItem>s
               </Animated.View>
             </DropdownMenuSubContent>
           </DropdownMenuSub> */}
@@ -68,6 +70,14 @@ export function ExerciseDropDownMenu({
         <DropdownMenuSeparator />
         <DropdownMenuItem onPress={() => onDelete(exerciseId)}>
           <Text>Delete Exercise</Text>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onPress={() => {
+            console.log("Dropdown replace clicked");
+            onReplace();
+          }}
+        >
+          <Text>Replace Exercise</Text>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

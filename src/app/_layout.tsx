@@ -59,7 +59,7 @@ export default function RootLayout() {
       async function prepareData() {
         await ExerciseService.fetchAndLoadExercises();
       }
-      //prepareData();
+      prepareData();
 
       // Return function is invoked whenever the route gets out of focus.
       return () => {
