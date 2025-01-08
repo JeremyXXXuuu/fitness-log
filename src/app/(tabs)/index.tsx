@@ -1,11 +1,6 @@
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  Animated,
-  Pressable,
-} from "react-native";
+import { View, Text, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import { Link, useFocusEffect } from "expo-router";
 import { CircularProgress } from "@/components/CircularProgress";
 import { Button } from "@/components/ui/button";

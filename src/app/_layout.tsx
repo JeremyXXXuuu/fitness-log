@@ -19,6 +19,9 @@ import { getDatabase, getDrizzle } from "@/db/db";
 import { useCallback, useEffect } from "react";
 import { ExerciseService } from "@/db/exercises";
 
+import { JsStack } from "@/lib/jsStack";
+import { PortalHost } from "@rn-primitives/portal";
+
 const LIGHT_THEME: Theme = {
   dark: false,
   colors: NAV_THEME.light,
@@ -56,7 +59,7 @@ export default function RootLayout() {
       async function prepareData() {
         await ExerciseService.fetchAndLoadExercises();
       }
-      // prepareData();
+      //prepareData();
 
       // Return function is invoked whenever the route gets out of focus.
       return () => {
@@ -105,19 +108,26 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
       <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-      <Stack>
+      <JsStack>
         <Stack.Screen
           name="(tabs)"
           options={{ headerShown: false }}
         />
-        <Stack.Screen
+        <JsStack.Screen
           name="workout"
           options={{
             presentation: "modal",
             headerShown: false,
+            cardStyle: {
+              marginBottom: 0,
+              marginHorizontal: 0,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+            },
           }}
         />
-      </Stack>
+      </JsStack>
+      <PortalHost />
     </ThemeProvider>
   );
 }

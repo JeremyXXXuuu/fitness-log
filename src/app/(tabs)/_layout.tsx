@@ -1,15 +1,18 @@
 import { View } from "react-native";
 import { Tabs } from "expo-router";
 import { WorkoutButton } from "@/components/WorkoutBtn";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         tabBarStyle: {
-          height: 60,
-          paddingBottom: 8,
+          height: 50,
+          paddingBottom: 0,
         },
+        tabBarLabel: () => null, // Hide tab bar labels
       }}
     >
       <Tabs.Screen
@@ -17,6 +20,13 @@ export default function TabsLayout() {
         options={{
           title: "Home",
           headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons
+              name="fitness-center"
+              color={color}
+              size={24}
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -35,6 +45,13 @@ export default function TabsLayout() {
         options={{
           title: "Settings",
           headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <FontAwesome
+              name="cog"
+              color={color}
+              size={24}
+            />
+          ),
         }}
       />
     </Tabs>

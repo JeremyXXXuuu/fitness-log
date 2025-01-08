@@ -1,4 +1,6 @@
-import { SafeAreaView, View } from "react-native";
+import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Auth from "@/components/auth/Auth";

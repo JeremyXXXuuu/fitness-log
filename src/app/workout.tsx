@@ -1,9 +1,9 @@
 import WorkoutLog from "@/components/core/fitness/WorkoutLog";
 import { Link, router } from "expo-router";
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "@/components/ui/keyboardProvider";
-import { PortalHost } from "@rn-primitives/portal";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Modal() {
   const isPresented = router.canGoBack();
@@ -14,10 +14,15 @@ export default function Modal() {
         className="h-full"
         style={styles.container}
       >
-        <WorkoutLog />
+        {Platform.OS === "android" ? (
+          <SafeAreaView className="h-full w-full">
+            <WorkoutLog />
+          </SafeAreaView>
+        ) : (
+          <WorkoutLog />
+        )}
         {!isPresented && <Link href="../">Minimize Workout</Link>}
       </GestureHandlerRootView>
-      <PortalHost />
     </KeyboardProvider>
   );
 }
