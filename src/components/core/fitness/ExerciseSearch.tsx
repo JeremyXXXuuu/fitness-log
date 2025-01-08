@@ -1,0 +1,125 @@
+import React, { useState, useEffect } from "react";
+import { View, FlatList, TouchableOpacity } from "react-native";
+import { Input } from "@/components/ui/input";
+import { Text } from "@/components/ui/text";
+import { ExerciseService } from "@/db/exercises";
+import { ExerciseSelect } from "@/db/exercises";
+import ExerciseDetail from "./ExerciseDetail";
+import CustomExerciseForm from "./CustomExerciseForm";
+import { Button } from "@/components/ui/button";
+
+interface ExerciseSearchProps {
+  onSelect: (exercise: ExerciseSelect) => void;
+  onClose: () => void;
+}
+
+export default function ExerciseSearch({
+  onSelect,
+  onClose,
+}: ExerciseSearchProps) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<ExerciseSelect[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedExercise, setSelectedExercise] =
+    useState<ExerciseSelect | null>(null);
+  const [showCustomForm, setShowCustomForm] = useState(false);
+
+  // Load all exercises initially
+  useEffect(() => {
+    const loadExercises = async () => {
+      setIsLoading(true);
+      try {
+        const exercises = await ExerciseService.getAllExercises();
+        setResults(exercises);
+      } catch (error) {
+        console.error("Failed to load exercises:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadExercises();
+  }, []);
+
+  // Handle search
+  useEffect(() => {
+    const searchExercises = async () => {
+      if (!query.trim()) {
+        const allExercises = await ExerciseService.getAllExercises();
+        setResults(allExercises);
+        return;
+      }
+      if (query.length < 2) return;
+
+      const exercises = await ExerciseService.searchExercises(query);
+      setResults(exercises);
+    };
+
+    searchExercises();
+  }, [query]);
+
+  if (showCustomForm) {
+    return (
+      <CustomExerciseForm
+        onSuccess={exercise => {
+          onSelect(exercise as ExerciseSelect);
+          setShowCustomForm(false);
+        }}
+        onBack={() => setShowCustomForm(false)}
+      />
+    );
+  }
+
+  if (selectedExercise) {
+    return (
+      <ExerciseDetail
+        exercise={selectedExercise}
+        onSelect={onSelect}
+        onBack={() => setSelectedExercise(null)}
+      />
+    );
+  }
+
+  return (
+    <View className="flex-1 p-4">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-xl font-bold">Select Exercise</Text>
+        <TouchableOpacity onPress={onClose}>
+          <Text>Close</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View className="flex-row justify-between mb-4 items-center">
+        <Input
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search exercises..."
+          className="flex-1 mr-2"
+        />
+        <Button
+          size="sm"
+          onPress={() => setShowCustomForm(true)}
+        >
+          <Text>Create</Text>
+        </Button>
+      </View>
+
+      {isLoading ? (
+        <Text className="text-center">Loading exercises...</Text>
+      ) : (
+        <FlatList
+          data={results}
+          keyExtractor={item => item.uuid}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => setSelectedExercise(item)}
+              className="p-3 border-b border-gray-200"
+            >
+              <Text className="text-lg">{item.name}</Text>
+              <Text className="text-sm text-gray-500">{item.category}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
+    </View>
+  );
+}

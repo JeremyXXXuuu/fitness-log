@@ -1,6 +1,6 @@
 import { getDrizzle } from "./db";
 import { exercisesTable } from "./schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import {
   force,
   level,
@@ -28,7 +28,8 @@ interface ApiExercise {
   images: string[]; // Array in API
 }
 
-type ExerciseInsert = typeof exercisesTable.$inferInsert;
+export type ExerciseInsert = typeof exercisesTable.$inferInsert;
+export type ExerciseSelect = typeof exercisesTable.$inferSelect;
 
 // Exercise related database operations
 export class ExerciseService {
@@ -155,6 +156,14 @@ export class ExerciseService {
     );
     // Load exercises into database
     await this.db.insert(exercisesTable).values(dbExercises);
+  }
+
+  static async searchExercises(query: string) {
+    return await ExerciseService.db
+      .select()
+      .from(exercisesTable)
+      .where(sql`${exercisesTable.name} LIKE ${`%${query}%`}`)
+      .all();
   }
 }
 

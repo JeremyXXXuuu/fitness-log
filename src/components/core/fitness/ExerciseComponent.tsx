@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Button } from "react-native";
+import { View } from "react-native";
 import { workoutLogExercise } from "@/db/types";
 import { useWorkoutStore } from "@/store/workoutStore";
 import SetComponent from "./SetComponent";
 import { Text } from "@/components/ui/text";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ExerciseDropDownMenu } from "@/components/ExerciseDropDownMenu";
 
@@ -67,9 +68,11 @@ export default function ExerciseComponent({ exercise }: Props) {
 
         <View className="px-2 mt-2">
           <Button
-            title="Add Set"
+            size="sm"
             onPress={handleAddSet}
-          />
+          >
+            <Text>Add Set</Text>
+          </Button>
         </View>
       </View>
     </View>

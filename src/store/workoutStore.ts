@@ -3,13 +3,14 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { workoutLog, workoutLogExercise, Set } from "@/db/types";
 import { WorkoutLogService } from "@/db/workout_log";
+import { ExerciseSelect } from "@/db/exercises";
 
 interface WorkoutState {
   currentWorkout: workoutLog | null;
   isWorkoutActive: boolean;
   startTime: number | null;
   startNewWorkout: () => void;
-  addExercise: () => void;
+  addExercise: (exercise: ExerciseSelect) => void;
   updateExercise: (exercise: workoutLogExercise) => void;
   deleteExercise: (id: string) => void;
   addSet: (exerciseId: string, newSet?: Set) => void;
@@ -46,14 +47,14 @@ export const useWorkoutStore = create<WorkoutState>()(
           startTime: Date.now(),
         }),
 
-      addExercise: () => {
+      addExercise: (exercise: ExerciseSelect) => {
         const workout = get().currentWorkout;
         if (!workout) return;
 
         const newExercise: workoutLogExercise = {
           id: Date.now().toString(),
-          exercise_name: "",
-          exercise_id: "",
+          exercise_name: exercise.name,
+          exercise_id: exercise.uuid,
           sets: [],
         };
 

@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
-import {
-  ScrollView,
-  Button,
-  View,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { ScrollView, View, KeyboardAvoidingView, Platform } from "react-native";
 import { useWorkoutStore } from "@/store/workoutStore";
 import ExerciseComponent from "./ExerciseComponent";
 import { router } from "expo-router";
+import ExerciseSearch from "./ExerciseSearch";
+import { ExerciseSelect } from "@/db/exercises";
+
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 
 export default function WorkoutLog() {
@@ -24,6 +22,7 @@ export default function WorkoutLog() {
   const [elapsedTime, setElapsedTime] = useState(() =>
     startTime ? Math.floor((Date.now() - startTime) / 1000) : 0,
   );
+  const [showSearch, setShowSearch] = useState(false);
 
   // Update timer display every second
   useEffect(() => {
@@ -55,6 +54,15 @@ export default function WorkoutLog() {
     router.back();
   };
 
+  const handleAddExercise = () => {
+    setShowSearch(true);
+  };
+
+  const handleSelectExercise = (exercise: ExerciseSelect) => {
+    addExercise(exercise);
+    setShowSearch(false);
+  };
+
   if (!hasHydrated) {
     console.log("Loading...");
     return <p>Loading...</p>;
@@ -66,39 +74,55 @@ export default function WorkoutLog() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 w-full"
     >
-      <ScrollView className="h-full w-full px-2 mb-10">
-        <View className="flex-row justify-between items-center p-4">
-          <Button
-            onPress={handleClose}
-            title="Close"
+      {showSearch ? (
+        <ExerciseSearch
+          onSelect={handleSelectExercise}
+          onClose={() => setShowSearch(false)}
+        />
+      ) : (
+        <View className="h-full w-full ">
+          <View className="flex-row justify-between items-center p-4">
+            <Button
+              size="sm"
+              onPress={handleClose}
+            >
+              <Text> close</Text>
+            </Button>
+
+            <Button
+              size="sm"
+              onPress={handleFinishWorkout}
+            >
+              <Text>Finish</Text>
+            </Button>
+          </View>
+
+          <Input
+            value={currentWorkout.name}
+            onChangeText={updateWorkoutName}
+            placeholder="Workout Name"
+            className="p-2  border border-gray-300 rounded"
           />
-          <Button
-            onPress={handleFinishWorkout}
-            title="Finish Workout"
-          />
+
+          <Text className="text-center text-xl">{formatTime(elapsedTime)}</Text>
+
+          <ScrollView className="flex-1 px-2">
+            {currentWorkout.exercises.map(exercise => (
+              <ExerciseComponent
+                key={exercise.id}
+                exercise={exercise}
+              />
+            ))}
+
+            <Button
+              className="mb-12"
+              onPress={handleAddExercise}
+            >
+              <Text> Add Exercise</Text>
+            </Button>
+          </ScrollView>
         </View>
-
-        <Input
-          value={currentWorkout.name}
-          onChangeText={updateWorkoutName}
-          placeholder="Workout Name"
-          className="p-2  border border-gray-300 rounded"
-        />
-
-        <Text className="text-center text-xl">{formatTime(elapsedTime)}</Text>
-
-        {currentWorkout.exercises.map(exercise => (
-          <ExerciseComponent
-            key={exercise.id}
-            exercise={exercise}
-          />
-        ))}
-
-        <Button
-          title="Add Exercise"
-          onPress={addExercise}
-        />
-      </ScrollView>
+      )}
     </KeyboardAvoidingView>
   );
 }
