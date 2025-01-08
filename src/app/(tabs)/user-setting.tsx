@@ -8,6 +8,7 @@ import Account from "@/components/auth/Account";
 import { Session } from "@supabase/supabase-js";
 import { Text } from "@/components/ui/text";
 import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
+import { WorkoutExportComponent } from "@/components/workoutExportComponent";
 
 export default function UserSetting() {
   const [session, setSession] = useState<Session | null>(null);
@@ -54,6 +55,20 @@ export default function UserSetting() {
           <Text className="text-lg font-semibold">About</Text>
           <View className="bg-card rounded-lg p-4">
             <Text className="text-sm text-muted-foreground">Version 1.0.0</Text>
+          </View>
+        </View>
+
+        {/* Export Data Section */}
+        <View className="space-y-2">
+          <Text className="text-lg font-semibold">Data</Text>
+          <View className="bg-card rounded-lg p-4 space-y-2">
+            {session?.user ? (
+              <WorkoutExportComponent userId={session.user.id} />
+            ) : (
+              <View>
+                <WorkoutExportComponent userId={"1"} />
+              </View>
+            )}
           </View>
         </View>
       </View>

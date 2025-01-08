@@ -1,11 +1,12 @@
-import React, { useState } from "react";
-import { Modal, ScrollView, View, Alert } from "react-native";
+import React from "react";
+import { Modal, ScrollView, View, Alert, Share } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { workoutLog } from "@/db/types";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { WorkoutLogService } from "@/db/workout_log";
+import { handleExport } from "@/lib/exportWorkoutLog";
 
 interface WorkoutLogModalProps {
   workout: workoutLog | undefined;
@@ -57,6 +58,39 @@ export function WorkoutLogModal({
     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  // const formatWorkoutToJSON = () => {
+  //   if (!workout) return "";
+  //   const workoutData = {
+  //     name: workout.name,
+  //     date: new Date(workout.created_at).toISOString(),
+  //     duration: formatTime(workout.duration),
+  //     exercises: workout.exercises.map(exercise => ({
+  //       name: exercise.exercise_name,
+  //       sets: exercise.sets.map((set, index) => ({
+  //         setNumber: index + 1,
+  //         weight: set.weight,
+  //         reps: set.reps,
+  //         rpe: set.rpe,
+  //       })),
+  //     })),
+  //   };
+
+  //   return JSON.stringify(workoutData, null, 2);
+  // };
+
+  // const handleExport = async () => {
+  //   try {
+  //     const json = formatWorkoutToJSON();
+  //     const fileName = `workout_${workout.name}_${new Date().toISOString().split("T")[0]}.json`;
+  //     await Share.share({
+  //       message: json,
+  //       title: fileName,
+  //     });
+  //   } catch (error) {
+  //     Alert.alert("Export Failed", "Failed to export workout data.");
+  //   }
+  // };
+
   return (
     <Modal
       animationType="slide"
@@ -75,16 +109,25 @@ export function WorkoutLogModal({
             className="rounded-full w-20"
             variant="default"
           >
-            <Text>close</Text>
+            <Text>Close</Text>
           </Button>
           <Text className="text-xl font-bold">{workout.name}</Text>
-          <Button
-            onPress={showDeleteConfirmation}
-            variant="destructive"
-            className="rounded-full w-20"
-          >
-            <Text>Delete</Text>
-          </Button>
+          <View className="flex-row gap-2">
+            <Button
+              onPress={() => handleExport(workout)}
+              variant="outline"
+              className="rounded-full w-20"
+            >
+              <Text>Export</Text>
+            </Button>
+            <Button
+              onPress={showDeleteConfirmation}
+              variant="destructive"
+              className="rounded-full w-20"
+            >
+              <Text>Delete</Text>
+            </Button>
+          </View>
         </View>
 
         <Text className="text-center">

@@ -45,6 +45,14 @@ export class WorkoutLogService {
     });
   }
 
+  static async getAllWorkoutLogsByUserId(userId: string) {
+    return await WorkoutLogService.db
+      .select()
+      .from(workoutLogTable)
+      .where(eq(workoutLogTable.user_id, userId))
+      .all();
+  }
+
   static async getWorkoutLogsByDateRange(
     userId: string,
     startDate: string,
