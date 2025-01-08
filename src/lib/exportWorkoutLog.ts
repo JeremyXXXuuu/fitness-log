@@ -16,6 +16,7 @@ const formatWorkoutToJSON = (workout: workoutLog) => {
     duration: formatTime(workout.duration),
     exercises: workout.exercises.map(exercise => ({
       name: exercise.exercise_name,
+      exerciseUUId: exercise.exercise_id,
       sets: exercise.sets.map((set, index) => ({
         setNumber: index + 1,
         weight: set.weight,
