@@ -10,6 +10,8 @@ interface WorkoutState {
   isWorkoutActive: boolean;
   startTime: number | null;
   startNewWorkout: () => void;
+  updateWorkoutName: (name: string) => void;
+  updateWorkoutNotes: (notes: string) => void;
   addExercise: (exercise: ExerciseSelect) => void;
   updateExercise: (exercise: workoutLogExercise) => void;
   deleteExercise: (id: string) => void;
@@ -17,7 +19,6 @@ interface WorkoutState {
   updateSet: (exerciseId: string, set: Set) => void;
   updateSetById: (exerciseId: string, updates: Partial<Set>) => void;
   deleteSet: (exerciseId: string, setId: string) => void;
-  updateWorkoutName: (name: string) => void;
   finishWorkout: () => Promise<void>;
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
@@ -46,6 +47,28 @@ export const useWorkoutStore = create<WorkoutState>()(
           isWorkoutActive: true,
           startTime: Date.now(),
         }),
+
+      updateWorkoutName: (name: string) => {
+        const workout = get().currentWorkout;
+        if (!workout) return;
+        set({
+          currentWorkout: {
+            ...workout,
+            name,
+          },
+        });
+      },
+
+      updateWorkoutNotes: (notes: string) => {
+        const workout = get().currentWorkout;
+        if (!workout) return;
+        set({
+          currentWorkout: {
+            ...workout,
+            notes,
+          },
+        });
+      },
 
       addExercise: (exercise: ExerciseSelect) => {
         const workout = get().currentWorkout;
@@ -197,17 +220,6 @@ export const useWorkoutStore = create<WorkoutState>()(
             exercises: workout.exercises.map(e =>
               e.id === exerciseId ? { ...e, sets: renumberedSets } : e,
             ),
-          },
-        });
-      },
-
-      updateWorkoutName: (name: string) => {
-        const workout = get().currentWorkout;
-        if (!workout) return;
-        set({
-          currentWorkout: {
-            ...workout,
-            name,
           },
         });
       },

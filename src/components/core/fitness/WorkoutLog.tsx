@@ -80,17 +80,19 @@ export default function WorkoutLog() {
           onClose={() => setShowSearch(false)}
         />
       ) : (
-        <View className="h-full w-full ">
+        <View className="h-full w-full">
           <View className="flex-row justify-between items-center p-4">
             <Button
               size="sm"
+              variant="link"
               onPress={handleClose}
             >
-              <Text> close</Text>
+              <Text>close</Text>
             </Button>
 
             <Button
               size="sm"
+              variant="link"
               onPress={handleFinishWorkout}
             >
               <Text>Finish</Text>
@@ -101,10 +103,19 @@ export default function WorkoutLog() {
             value={currentWorkout.name}
             onChangeText={updateWorkoutName}
             placeholder="Workout Name"
-            className="p-2  border border-gray-300 rounded"
+            className="mx-2 border-0 native:text-xl"
           />
 
           <Text className="text-center text-xl">{formatTime(elapsedTime)}</Text>
+
+          {/* workout notes here */}
+
+          <Input
+            value={currentWorkout.name}
+            onChangeText={updateWorkoutName}
+            placeholder="Workout Notes"
+            className="mx-2 border-0"
+          />
 
           <ScrollView className="flex-1 px-2">
             {currentWorkout.exercises.map(exercise => (
@@ -115,10 +126,11 @@ export default function WorkoutLog() {
             ))}
 
             <Button
-              className="mb-12"
+              className="mb-10"
+              variant="secondary"
               onPress={handleAddExercise}
             >
-              <Text> Add Exercise</Text>
+              <Text>ADD EXERCISE</Text>
             </Button>
           </ScrollView>
         </View>

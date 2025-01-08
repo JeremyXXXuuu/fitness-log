@@ -69,9 +69,10 @@ export default function ExerciseComponent({ exercise }: Props) {
         <View className="px-2 mt-2">
           <Button
             size="sm"
+            variant="outline"
             onPress={handleAddSet}
           >
-            <Text>Add Set</Text>
+            <Text>ADD SET</Text>
           </Button>
         </View>
       </View>
