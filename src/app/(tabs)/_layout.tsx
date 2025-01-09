@@ -9,7 +9,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         tabBarStyle: {
-          height: 50,
+          height: 70,
           paddingBottom: 0,
         },
         tabBarLabel: () => null, // Hide tab bar labels
