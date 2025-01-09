@@ -152,14 +152,12 @@ const ExpandableCalendarScreen = () => {
   const theme = isDarkColorScheme ? NAV_THEME.dark : NAV_THEME.light;
 
   const calendarKey = `calendar-${isDarkColorScheme}`;
-  console.log("calendarKey", calendarKey);
 
   const [workoutLogs, setWorkoutLogs] = useState<{
     [key: string]: WorkoutAgendaItem;
   }>({});
 
   const loadWorkoutLogsCallback = useCallback(() => {
-    console.log("Focosued");
     loadWorkoutLogs();
   }, []);
 

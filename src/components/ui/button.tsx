@@ -20,7 +20,7 @@ const buttonVariants = cva(
         done: "bg-gray-200 web:hover:opacity-90 active:opacity-90",
       },
       size: {
-        default: "h-10 px-4 py-2 native:h-12 native:px-0 native:py-0",
+        default: "h-10 px-4 py-2 native:h-10 native:px-0 native:py-0",
         sm: "h-9 rounded-lg px-3",
         lg: "h-11 rounded-lg px-8 native:h-14",
         icon: "h-10 w-10",

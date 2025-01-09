@@ -81,7 +81,7 @@ export default function ExerciseDetail({
       onRequestClose={onBack}
     >
       <View
-        className="h-full w-full p-4 pt-16"
+        className="h-full w-full px-2 pt-16"
         style={{ flex: 1, backgroundColor: theme.background }}
       >
         <View className="flex-row justify-between items-center mb-6 px-4">
@@ -101,7 +101,7 @@ export default function ExerciseDetail({
           )}
         </View>
 
-        <ScrollView className="pt-6">
+        <ScrollView className="px-4">
           <Text className="text-2xl font-bold mb-4">{exercise.name}</Text>
           {imageUrls.length > 0 && (
             <View className="mb-6">

@@ -55,7 +55,6 @@ export default function RootLayout() {
     // Callback should be wrapped in `React.useCallback` to avoid running the effect too often.
     useCallback(() => {
       // Invoked whenever the route is focused.
-      console.log("Focosued");
       async function prepareData() {
         await ExerciseService.fetchAndLoadExercises();
       }

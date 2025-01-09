@@ -107,7 +107,7 @@ export default function ExerciseSearch({
         className="h-full w-full pt-16 px-4"
         style={{ backgroundColor: theme.background }}
       >
-        <View className="flex-row justify-between items-center mb-6 px-4">
+        <View className="flex-row justify-between items-center mb-6">
           <Text className="text-xl font-bold">Select Exercise</Text>
           <Button
             variant="link"

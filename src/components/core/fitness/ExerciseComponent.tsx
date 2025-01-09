@@ -38,11 +38,10 @@ export default function ExerciseComponent({
 
   return (
     <View style={{ flex: 1 }}>
-      <View className="bg-background m-4">
+      <View className="bg-background pb-4">
         <View className="flex flex-row items-center justify-between">
           <Button
             size="sm"
-            className="w-1/2"
             variant="link"
             onPress={() => {
               // show exercise detail
@@ -57,7 +56,7 @@ export default function ExerciseComponent({
             onReplace={replaceExercise}
           />
         </View>
-        <View className="mt-4">
+        <View>
           <View className="flex flex-row items-center justify-between py-2 px-4 bg-background">
             <Text className="w-8">Set</Text>
             <Text className="w-16 text-base">Previous</Text>
