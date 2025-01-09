@@ -100,7 +100,7 @@ export function WorkoutLogModal({
       style={{ backgroundColor: theme.background }}
     >
       <ScrollView
-        className="flex-1 pt-12"
+        className="flex-1 p-4 pt-16"
         style={{ backgroundColor: theme.background }}
       >
         <View className="flex-row justify-between items-center p-4">
@@ -111,7 +111,7 @@ export function WorkoutLogModal({
           >
             <Text>Close</Text>
           </Button>
-          <Text className="text-xl font-bold">{workout.name}</Text>
+
           <View className="flex-row gap-2">
             <Button
               onPress={() => handleExport(workout)}
@@ -130,8 +130,15 @@ export function WorkoutLogModal({
           </View>
         </View>
 
+        <Text className="text-xl text-center font-bold">{workout.name}</Text>
         <Text className="text-center">
           Duration: {formatTime(workout.duration)}
+        </Text>
+        <Text className="text-center">
+          Date: {new Date(workout.created_at).toLocaleDateString()}
+        </Text>
+        <Text className="text-center">
+          Notes: {workout.notes || "No notes"}
         </Text>
 
         {workout.exercises.map(exercise => (

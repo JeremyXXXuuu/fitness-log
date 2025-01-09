@@ -35,6 +35,7 @@ export class WorkoutLogService {
     return await WorkoutLogService.db.insert(workoutLogTable).values({
       id: workoutLog.id,
       name: workoutLog.name,
+      notes: workoutLog.notes,
       user_id: workoutLog.user_id,
       exercises: workoutLog.exercises,
       duration: workoutLog.duration,

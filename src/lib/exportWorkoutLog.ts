@@ -12,6 +12,7 @@ const formatWorkoutToJSON = (workout: workoutLog) => {
   if (!workout) return "";
   const workoutData = {
     name: workout.name,
+    notes: workout.notes,
     date: new Date(workout.created_at).toISOString(),
     duration: formatTime(workout.duration),
     exercises: workout.exercises.map(exercise => ({

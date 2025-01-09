@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import {
-  ScrollView,
   View,
   KeyboardAvoidingView,
   Platform,
   FlatList,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { useWorkoutStore } from "@/store/workoutStore";
 import ExerciseComponent from "./ExerciseComponent";
@@ -22,6 +23,7 @@ export default function WorkoutLog() {
     addExercise,
     updateExercise,
     updateWorkoutName,
+    updateWorkoutNotes,
     finishWorkout,
     startTime,
   } = useWorkoutStore();
@@ -91,6 +93,10 @@ export default function WorkoutLog() {
     setUpdateWorkoutId(replace_id);
   };
 
+  const DismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   if (!hasHydrated) {
     console.log("Loading...");
     return <p>Loading...</p>;
@@ -102,73 +108,81 @@ export default function WorkoutLog() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="w-full"
     >
-      {showSearch ? (
-        <ExerciseSearch
-          visible={showSearch}
-          onSelect={handleSelectExercise}
-          onClose={() => setShowSearch(false)}
-        />
-      ) : (
-        <View className="h-full w-full">
-          <View className="flex-row justify-between items-center p-4">
-            <Button
-              size="sm"
-              variant="link"
-              onPress={handleClose}
-            >
-              <Text>Close</Text>
-            </Button>
-
-            <Button
-              size="sm"
-              variant="link"
-              onPress={handleFinishWorkout}
-            >
-              <Text>Finish</Text>
-            </Button>
-          </View>
-
-          <Input
-            value={currentWorkout.name}
-            onChangeText={updateWorkoutName}
-            placeholder="Workout Name"
-            className="mx-2 border-0 native:text-xl"
+      <TouchableWithoutFeedback
+        onPress={() => {
+          DismissKeyboard();
+        }}
+      >
+        {showSearch ? (
+          <ExerciseSearch
+            visible={showSearch}
+            onSelect={handleSelectExercise}
+            onClose={() => setShowSearch(false)}
           />
-
-          <Text className="text-center text-xl">{formatTime(elapsedTime)}</Text>
-
-          {/* workout notes here */}
-
-          <Input
-            value={currentWorkout.name}
-            onChangeText={updateWorkoutName}
-            placeholder="Workout Notes"
-            className="mx-2 border-0"
-          />
-
-          <FlatList
-            className="flex-1 px-2"
-            data={currentWorkout.exercises}
-            renderItem={({ item }) => (
-              <ExerciseComponent
-                key={item.id}
-                exercise={item}
-                replaceExercise={replaceExercise}
-              />
-            )}
-            keyExtractor={item => item.id}
-            ListFooterComponent={() => (
+        ) : (
+          <View className="h-full w-full">
+            <View className="flex-row justify-between items-center p-4">
               <Button
-                className="mb-10"
-                variant="secondary"
-                onPress={handleAddExercise}
+                size="sm"
+                variant="link"
+                onPress={handleClose}
               >
-                <Text>ADD EXERCISE</Text>
+                <Text>Close</Text>
               </Button>
-            )}
-          />
-        </View>
-      )}
+
+              <Button
+                size="sm"
+                variant="link"
+                onPress={handleFinishWorkout}
+              >
+                <Text>Finish</Text>
+              </Button>
+            </View>
+
+            <Input
+              value={currentWorkout.name}
+              onChangeText={updateWorkoutName}
+              placeholder="Workout Name"
+              className="mx-2 border-0 native:text-xl"
+            />
+
+            <Text className="text-center text-xl">
+              {formatTime(elapsedTime)}
+            </Text>
+
+            {/* workout notes here */}
+
+            <Input
+              value={currentWorkout.notes || ""}
+              onChangeText={updateWorkoutNotes}
+              placeholder="Workout Notes"
+              className="mx-2 border-0"
+            />
+
+            <FlatList
+              className="flex-1 px-2"
+              data={currentWorkout.exercises}
+              renderItem={({ item }) => (
+                <ExerciseComponent
+                  key={item.id}
+                  exercise={item}
+                  replaceExercise={replaceExercise}
+                />
+              )}
+              keyExtractor={item => item.id}
+              ListFooterComponent={() => (
+                <Button
+                  className="mb-10"
+                  variant="secondary"
+                  onPress={handleAddExercise}
+                >
+                  <Text>ADD EXERCISE</Text>
+                </Button>
+              )}
+            />
+          </View>
+        )}
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

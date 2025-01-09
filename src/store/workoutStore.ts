@@ -36,7 +36,7 @@ export const useWorkoutStore = create<WorkoutState>()(
             id: Date.now().toString(),
             name: "New Workout",
             exercises: [],
-            notes: "",
+            notes: null,
             user_id: "1",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -163,7 +163,6 @@ export const useWorkoutStore = create<WorkoutState>()(
       },
 
       updateSetById: (exerciseId: string, updates: Partial<Set>) => {
-        console.log("updateSetById", exerciseId, updates.weight);
         const workout = get().currentWorkout;
         if (!workout) return;
 
@@ -225,7 +224,6 @@ export const useWorkoutStore = create<WorkoutState>()(
       },
 
       finishWorkout: async () => {
-        console.log("Finishing workout...");
         const workout = get().currentWorkout;
         if (!workout) return;
         const startTime = get().startTime;
