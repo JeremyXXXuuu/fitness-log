@@ -20,6 +20,7 @@ export default function WorkoutLog() {
   const {
     currentWorkout,
     addExercise,
+    updateExercise,
     updateWorkoutName,
     finishWorkout,
     startTime,
@@ -29,6 +30,7 @@ export default function WorkoutLog() {
     startTime ? Math.floor((Date.now() - startTime) / 1000) : 0,
   );
   const [showSearch, setShowSearch] = useState(false);
+  const [updateWorkoutId, setUpdateWorkoutId] = useState("");
 
   // Update timer display every second
   useEffect(() => {
@@ -65,8 +67,28 @@ export default function WorkoutLog() {
   };
 
   const handleSelectExercise = (exercise: ExerciseSelect) => {
-    addExercise(exercise);
+    if (updateWorkoutId) {
+      // Update existing exercise
+      const oldExercise = currentWorkout?.exercises.find(
+        ex => ex.id === updateWorkoutId,
+      );
+      if (!oldExercise) return;
+      updateExercise({
+        ...oldExercise,
+        id: updateWorkoutId,
+        exercise_name: exercise.name,
+        exercise_id: exercise.uuid,
+      });
+      setUpdateWorkoutId("");
+    } else {
+      addExercise(exercise);
+    }
     setShowSearch(false);
+  };
+
+  const replaceExercise = (replace_id: string) => {
+    setShowSearch(true);
+    setUpdateWorkoutId(replace_id);
   };
 
   if (!hasHydrated) {
@@ -78,10 +100,11 @@ export default function WorkoutLog() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 w-full"
+      className="w-full"
     >
       {showSearch ? (
         <ExerciseSearch
+          visible={showSearch}
           onSelect={handleSelectExercise}
           onClose={() => setShowSearch(false)}
         />
@@ -93,7 +116,7 @@ export default function WorkoutLog() {
               variant="link"
               onPress={handleClose}
             >
-              <Text>close</Text>
+              <Text>Close</Text>
             </Button>
 
             <Button
@@ -130,6 +153,7 @@ export default function WorkoutLog() {
               <ExerciseComponent
                 key={item.id}
                 exercise={item}
+                replaceExercise={replaceExercise}
               />
             )}
             keyExtractor={item => item.id}

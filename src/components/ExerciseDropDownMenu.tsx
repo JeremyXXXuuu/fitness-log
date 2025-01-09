@@ -19,7 +19,7 @@ import { Text } from "@/components/ui/text";
 interface ExerciseDropDownMenuProps {
   exerciseId: string;
   onDelete: (id: string) => void;
-  onReplace: () => void;
+  onReplace: (replace_id: string) => void;
 }
 
 export function ExerciseDropDownMenu({
@@ -74,7 +74,7 @@ export function ExerciseDropDownMenu({
         <DropdownMenuItem
           onPress={() => {
             console.log("Dropdown replace clicked");
-            onReplace();
+            onReplace(exerciseId);
           }}
         >
           <Text>Replace Exercise</Text>

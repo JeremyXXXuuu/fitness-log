@@ -43,6 +43,14 @@ export class ExerciseService {
       .get();
   }
 
+  static async getExerciseByUUId(uuid: string) {
+    return await ExerciseService.db
+      .select()
+      .from(exercisesTable)
+      .where(eq(exercisesTable.uuid, uuid))
+      .get();
+  }
+
   static async getAllExercises() {
     return await ExerciseService.db.select().from(exercisesTable).all();
   }
