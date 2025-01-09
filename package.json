@@ -10,8 +10,8 @@
     "web": "expo start --web",
     "lint": "eslint .",
     "db:generate": "drizzle-kit generate",
-    "build:ios": "prebuild && expo run:ios --configuration Release --device",
-    "build:android": "prebuild && expo run:android --variant release"
+    "build:ios": "expo prebuild && expo run:ios --configuration Release --device",
+    "build:android": "expo prebuild && expo run:android --variant release"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "1.23.1",
@@ -38,6 +38,7 @@
     "expo-router": "^4.0.14",
     "expo-sqlite": "~15.0.3",
     "expo-status-bar": "~2.0.0",
+    "fuse.js": "^7.0.0",
     "lucide-react-native": "^0.469.0",
     "nativewind": "^4.1.23",
     "react": "18.3.1",

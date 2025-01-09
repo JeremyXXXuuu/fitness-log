@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { View, FlatList, TouchableOpacity, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import CustomExerciseForm from "./CustomExerciseForm";
 import { Button } from "@/components/ui/button";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { NAV_THEME } from "@/lib/constants";
+import Fuse from "fuse.js";
 
 interface ExerciseSearchProps {
   visible: boolean;
@@ -24,6 +25,7 @@ export default function ExerciseSearch({
 }: ExerciseSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ExerciseSelect[]>([]);
+  const [exercises, setExercises] = useState<ExerciseSelect[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedExercise, setSelectedExercise] =
     useState<ExerciseSelect | null>(null);
@@ -32,13 +34,24 @@ export default function ExerciseSearch({
   const { isDarkColorScheme } = useColorScheme();
   const theme = isDarkColorScheme ? NAV_THEME.dark : NAV_THEME.light;
 
+  // Configure Fuse options
+  const fuseOptions = {
+    keys: ["name", "force", "category", "primaryMuscles", "equipment"],
+    threshold: 0.3,
+    includeScore: true,
+  };
+
+  // Create Fuse instance
+  const fuse = useMemo(() => new Fuse(exercises, fuseOptions), [exercises]);
+
   // Load all exercises initially
   useEffect(() => {
     const loadExercises = async () => {
       setIsLoading(true);
       try {
-        const exercises = await ExerciseService.getAllExercises();
-        setResults(exercises);
+        const loadedExercises = await ExerciseService.getAllExercises();
+        setExercises(loadedExercises);
+        setResults(loadedExercises);
       } catch (error) {
         console.error("Failed to load exercises:", error);
       } finally {
@@ -48,22 +61,16 @@ export default function ExerciseSearch({
     loadExercises();
   }, []);
 
-  // Handle search
+  // Handle search with Fuse.js
   useEffect(() => {
-    const searchExercises = async () => {
-      if (!query.trim()) {
-        const allExercises = await ExerciseService.getAllExercises();
-        setResults(allExercises);
-        return;
-      }
-      if (query.length < 2) return;
-
-      const exercises = await ExerciseService.searchExercises(query);
+    if (!query.trim()) {
       setResults(exercises);
-    };
+      return;
+    }
 
-    searchExercises();
-  }, [query]);
+    const searchResults = fuse.search(query);
+    setResults(searchResults.map(result => result.item));
+  }, [query, fuse]);
 
   if (showCustomForm) {
     return (
